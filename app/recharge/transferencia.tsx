@@ -113,7 +113,7 @@ export default function TransferenciaScreen() {
         />
 
         <AppButton label="Cancelar" onPress={() => router.back()} variant="ghost" />
-        <View style={{ height: 32 }} />
+        <View style={{ height: 12 }} />
       </ScrollView>
     </SafeAreaView>
   );

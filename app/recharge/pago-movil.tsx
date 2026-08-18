@@ -152,7 +152,7 @@ export default function PagoMovilScreen() {
           variant="ghost"
         />
 
-        <View style={{ height: 32 }} />
+        <View style={{ height: 12 }} />
       </ScrollView>
     </SafeAreaView>
   );
