@@ -46,16 +46,8 @@ export default function RootLayout() {
           <Stack.Screen name="index" />
           <Stack.Screen name="(auth)" />
           <Stack.Screen name="(tabs)" />
-          <Stack.Screen
-            name="recharge"
-            options={{
-              headerShown: true,
-              headerTitle: 'Recargar saldo',
-              headerBackTitle: 'Volver',
-              headerStyle: { backgroundColor: '#F5F7FA' },
-              headerTitleStyle: { fontFamily: 'Inter_600SemiBold', fontSize: 17 },
-            }}
-          />
+          <Stack.Screen name="recharge" />
+          <Stack.Screen name="parking/[id]" />
         </Stack>
       </PaperProvider>
     </GestureHandlerRootView>
