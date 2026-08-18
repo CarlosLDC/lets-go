@@ -7,11 +7,12 @@ export const Spacing = {
   xxl: 24,
 
   // Semantic spacing tokens
-  titleToContent: 12, // Standard vertical distance between subtitle/section title and content
-  sectionGap: 24,     // Vertical gap between consecutive sections
-  screenPadding: 16,  // Screen edge horizontal padding
-  cardPadding: 16,    // Internal container padding
-  itemGap: 10,        // Gap between items in list / grid
+  subtitleToSection: 12, // Distancia estándar entre cada subtítulo y la sección subsiguiente
+  titleToContent: 12,    // Alias compatible
+  sectionGap: 24,        // Separación vertical entre secciones consecutivas
+  screenPadding: 16,     // Margen horizontal de pantalla
+  cardPadding: 16,       // Padding interno de tarjetas
+  itemGap: 10,           // Espacio entre elementos en listas y cuadrículas
 } as const;
 
 export type SpacingKey = keyof typeof Spacing;
