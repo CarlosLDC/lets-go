@@ -8,6 +8,7 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors, Gradients } from '../../constants/colors';
 import { Typography } from '../../constants/typography';

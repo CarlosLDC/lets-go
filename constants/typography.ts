@@ -62,6 +62,12 @@ export const Typography = StyleSheet.create({
     lineHeight: 20,
     letterSpacing: 0.1,
   },
+  labelMedium: {
+    fontFamily: FontFamily.medium,
+    fontSize: 12,
+    lineHeight: 16,
+    letterSpacing: 0.2,
+  },
   labelSmall: {
     fontFamily: FontFamily.medium,
     fontSize: 11,
