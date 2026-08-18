@@ -8,6 +8,7 @@ export const Colors = {
   mint: '#00D4AA',
   mintLight: '#33DDBB',
   mintDark: '#00A888',
+  mintSurface: '#E6FAF5',
 
   // Secondary
   coral: '#FF6B6B',

@@ -274,7 +274,7 @@ const styles = StyleSheet.create({
   },
   spotOptionSelected: {
     borderColor: Colors.mint,
-    backgroundColor: Colors.mint + '10',
+    backgroundColor: Colors.mintSurface,
   },
   spotOptionInfo: { flex: 1 },
   spotOptionName: { ...Typography.titleMedium, color: Colors.textPrimary, fontWeight: '600' },

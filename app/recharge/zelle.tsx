@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  methodTabActive: { borderColor: Colors.mint, backgroundColor: Colors.mint + '12' },
+  methodTabActive: { borderColor: Colors.mint, backgroundColor: Colors.mintSurface },
   methodTabEmoji: { fontSize: 22, marginBottom: 4 },
   methodTabLabel: { ...Typography.caption, color: Colors.textSecondary },
   methodTabLabelActive: { color: Colors.navy, fontWeight: '700' },
