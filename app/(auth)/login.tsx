@@ -12,7 +12,8 @@ import {
 import { TextInput } from 'react-native-paper';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Colors } from '../../constants/colors';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Colors, Gradients } from '../../constants/colors';
 import { Typography } from '../../constants/typography';
 import { AppButton } from '../../components/ui/AppButton';
 import { useAppStore } from '../../store/useAppStore';
@@ -48,16 +49,26 @@ export default function LoginScreen() {
           keyboardShouldPersistTaps="handled"
         >
           {/* Hero */}
-          <View style={styles.hero}>
-            <View style={styles.logoBox}>
+          <LinearGradient
+            colors={Gradients.darkHero}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0.3, y: 1 }}
+            style={styles.hero}
+          >
+            <LinearGradient
+              colors={Gradients.darkShimmer}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.logoBox}
+            >
               <Text style={styles.logoP}>P</Text>
               <View style={styles.logoArrow}>
                 <Text style={styles.logoArrowText}>↗</Text>
               </View>
-            </View>
+            </LinearGradient>
             <Text style={styles.brandName}>LetsGo</Text>
             <Text style={styles.tagline}>Tu parqueo, en un toque</Text>
-          </View>
+          </LinearGradient>
 
           {/* Form */}
           <View style={styles.form}>
@@ -144,7 +155,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 48,
     paddingBottom: 32,
-    backgroundColor: Colors.navy,
     borderBottomLeftRadius: 32,
     borderBottomRightRadius: 32,
     marginBottom: 32,
@@ -153,7 +163,6 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 24,
-    backgroundColor: Colors.navyLight,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,

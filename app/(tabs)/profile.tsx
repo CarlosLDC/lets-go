@@ -9,7 +9,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { Colors } from '../../constants/colors';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Colors, Gradients } from '../../constants/colors';
 import { Typography } from '../../constants/typography';
 import { useAppStore } from '../../store/useAppStore';
 
@@ -67,11 +68,16 @@ export default function ProfileScreen() {
 
         {/* Avatar */}
         <View style={styles.avatarSection}>
-          <View style={styles.avatar}>
+          <LinearGradient
+            colors={Gradients.darkCard}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.avatar}
+          >
             <Text style={styles.avatarInitials}>
               {userName.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()}
             </Text>
-          </View>
+          </LinearGradient>
           <Text style={styles.userName}>{userName}</Text>
           <Text style={styles.userPhone}>{userPhone}</Text>
           <View style={styles.verifiedBadge}>
@@ -143,15 +149,14 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: Colors.navy,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 12,
     shadowColor: Colors.navy,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 6,
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 4,
   },
   avatarInitials: {
     fontSize: 28,

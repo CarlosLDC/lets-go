@@ -9,7 +9,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TextInput } from 'react-native-paper';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Colors } from '../../constants/colors';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Colors, Gradients } from '../../constants/colors';
 import { Typography } from '../../constants/typography';
 import { AppButton } from '../../components/ui/AppButton';
 import { useAppStore } from '../../store/useAppStore';
@@ -57,11 +58,16 @@ export default function PagoMovilScreen() {
     <SafeAreaView style={styles.safe} edges={['bottom']}>
       <ScrollView style={styles.scroll} keyboardShouldPersistTaps="handled">
         {/* Summary */}
-        <View style={styles.summary}>
+        <LinearGradient
+          colors={Gradients.darkCard}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.summary}
+        >
           <Text style={styles.summaryLabel}>Vas a recargar</Text>
           <Text style={styles.summaryAmount}>${amountUsd.toFixed(2)}</Text>
           <Text style={styles.summaryBs}>≈ Bs.{amountBs.toLocaleString('es-VE')}</Text>
-        </View>
+        </LinearGradient>
 
         {/* Instructions */}
         <View style={styles.instructionsCard}>
@@ -158,11 +164,15 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.offWhite },
   scroll: { flex: 1, paddingHorizontal: Spacing.screenPadding },
   summary: {
-    backgroundColor: Colors.navy,
     borderRadius: 20,
     padding: 24,
     alignItems: 'center',
     marginVertical: 16,
+    shadowColor: Colors.navy,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 4,
   },
   summaryLabel: { ...Typography.labelLarge, color: 'rgba(255,255,255,0.6)', letterSpacing: 1 },
   summaryAmount: { fontSize: 48, fontFamily: 'Inter_700Bold', color: Colors.mint, marginTop: 8 },

@@ -42,4 +42,16 @@ export const Colors = {
   overlayLight: 'rgba(26, 46, 74, 0.15)',
 } as const;
 
+export const Gradients = {
+  // Minimalist dark gradient for primary cards (BalanceCard, SummaryCards, ActiveSession)
+  darkCard: ['#223A5E', '#1A2E4A', '#101F33'] as const,
+  // Minimalist top-to-bottom dark gradient for Hero headers
+  darkHero: ['#1E3454', '#15263D', '#0D1826'] as const,
+  // Compact elements & buttons
+  darkElement: ['#26436C', '#1A2E4A'] as const,
+  // Surface highlight overlay gradient
+  darkShimmer: ['#2A4770', '#1A2E4A'] as const,
+} as const;
+
 export type ColorKey = keyof typeof Colors;
+export type GradientKey = keyof typeof Gradients;

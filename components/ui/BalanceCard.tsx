@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, Text } from 'react-native';
-import { Colors } from '../../constants/colors';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Colors, Gradients } from '../../constants/colors';
 import { Typography } from '../../constants/typography';
 import { AppButton } from './AppButton';
 
@@ -18,7 +19,12 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({
   onHistory,
 }) => {
   return (
-    <View style={styles.card}>
+    <LinearGradient
+      colors={Gradients.darkCard}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.card}
+    >
       <View style={styles.header}>
         <Text style={styles.label}>Saldo disponible</Text>
         <View style={styles.dot} />
@@ -54,19 +60,18 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({
           />
         )}
       </View>
-    </View>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: Colors.navy,
     borderRadius: 24,
     padding: 24,
     marginHorizontal: 16,
     shadowColor: Colors.navy,
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.35,
     shadowRadius: 16,
     elevation: 8,
   },

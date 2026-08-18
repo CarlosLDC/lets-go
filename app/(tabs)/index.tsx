@@ -10,7 +10,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { Colors } from '../../constants/colors';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Colors, Gradients } from '../../constants/colors';
 import { Typography } from '../../constants/typography';
 import { ParkingSpotCard } from '../../components/ui/ParkingSpotCard';
 import { BalanceCard } from '../../components/ui/BalanceCard';
@@ -52,14 +53,19 @@ export default function HomeScreen() {
         />
 
         {/* Map placeholder */}
-        <View style={styles.mapPlaceholder}>
+        <LinearGradient
+          colors={Gradients.darkCard}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.mapPlaceholder}
+        >
           <Text style={styles.mapEmoji}>🗺️</Text>
           <Text style={styles.mapText}>Mapa de estacionamientos</Text>
           <Text style={styles.mapSub}>Caracas, Venezuela</Text>
           <View style={styles.mapPin}>
             <Text>📍</Text>
           </View>
-        </View>
+        </LinearGradient>
 
         {/* Search */}
         <View style={styles.searchRow}>
@@ -73,8 +79,15 @@ export default function HomeScreen() {
               onChangeText={setSearch}
             />
           </View>
-          <TouchableOpacity style={styles.filterBtn}>
-            <Text style={styles.filterEmoji}>⚙️</Text>
+          <TouchableOpacity activeOpacity={0.8} style={{ borderRadius: 14, overflow: 'hidden' }}>
+            <LinearGradient
+              colors={Gradients.darkElement}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.filterBtn}
+            >
+              <Text style={styles.filterEmoji}>⚙️</Text>
+            </LinearGradient>
           </TouchableOpacity>
         </View>
 
@@ -149,11 +162,15 @@ const styles = StyleSheet.create({
     marginTop: 20,
     height: 180,
     borderRadius: 20,
-    backgroundColor: Colors.navyLight,
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
     position: 'relative',
+    shadowColor: Colors.navy,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 14,
+    elevation: 6,
   },
   mapEmoji: { fontSize: 48, marginBottom: 8 },
   mapText: { ...Typography.titleLarge, color: Colors.white },
@@ -197,8 +214,6 @@ const styles = StyleSheet.create({
   filterBtn: {
     width: 50,
     height: 50,
-    borderRadius: 14,
-    backgroundColor: Colors.navy,
     justifyContent: 'center',
     alignItems: 'center',
   },

@@ -8,7 +8,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Colors } from '../../constants/colors';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Colors, Gradients } from '../../constants/colors';
 import { Typography } from '../../constants/typography';
 import { AppButton } from '../../components/ui/AppButton';
 import { MOCK_PARKING_SPOTS } from '../../data/mock';
@@ -40,13 +41,21 @@ export default function ParkingDetailScreen() {
         </TouchableOpacity>
 
         {/* Hero */}
-        <View style={styles.hero}>
+        <LinearGradient
+          colors={Gradients.darkHero}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.hero}
+        >
           <Text style={styles.heroEmoji}>🏢</Text>
-          <View style={styles.heroOverlay}>
+          <LinearGradient
+            colors={['transparent', 'rgba(13, 24, 38, 0.95)']}
+            style={styles.heroOverlay}
+          >
             <Text style={styles.heroName}>{spot.name}</Text>
             <Text style={styles.heroAddress}>{spot.address} · {spot.city}</Text>
-          </View>
-        </View>
+          </LinearGradient>
+        </LinearGradient>
 
         {/* Quick stats */}
         <View style={styles.statsRow}>
@@ -156,7 +165,6 @@ const styles = StyleSheet.create({
   backBtn: { padding: 16 },
   backText: { ...Typography.titleMedium, color: Colors.mint },
   hero: {
-    backgroundColor: Colors.navy,
     marginHorizontal: 16,
     borderRadius: 24,
     height: 180,
@@ -164,6 +172,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     overflow: 'hidden',
     marginBottom: 16,
+    shadowColor: Colors.navy,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 6,
   },
   heroEmoji: {
     fontSize: 80,

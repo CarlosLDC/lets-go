@@ -8,7 +8,8 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Colors } from '../../constants/colors';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Colors, Gradients } from '../../constants/colors';
 import { Typography } from '../../constants/typography';
 import { AppButton } from '../../components/ui/AppButton';
 import { useAppStore } from '../../store/useAppStore';
@@ -99,7 +100,12 @@ export default function ParkingScreen() {
 
         {activeSession ? (
           /* ACTIVE SESSION */
-          <View style={styles.activeCard}>
+          <LinearGradient
+            colors={Gradients.darkCard}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.activeCard}
+          >
             <View style={styles.activeHeader}>
               <View style={styles.activeDot} />
               <Text style={styles.activeLabel}>Sesión activa</Text>
@@ -126,7 +132,7 @@ export default function ParkingScreen() {
               variant="secondary"
               style={styles.stopBtn}
             />
-          </View>
+          </LinearGradient>
         ) : (
           /* NO SESSION */
           <View>
@@ -197,7 +203,6 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   activeCard: {
-    backgroundColor: Colors.navy,
     borderRadius: 28,
     margin: 16,
     padding: 24,

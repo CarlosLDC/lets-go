@@ -9,7 +9,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Colors } from '../../constants/colors';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Colors, Gradients } from '../../constants/colors';
 import { Typography } from '../../constants/typography';
 import { AppButton } from '../../components/ui/AppButton';
 import { useAppStore } from '../../store/useAppStore';
@@ -74,11 +75,16 @@ export default function TransferenciaScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
       <ScrollView style={styles.scroll}>
-        <View style={styles.summary}>
+        <LinearGradient
+          colors={Gradients.darkCard}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.summary}
+        >
           <Text style={styles.summaryLabel}>Monto a transferir</Text>
           <Text style={styles.summaryAmount}>Bs.{amountBs.toLocaleString('es-VE')}</Text>
           <Text style={styles.summaryUsd}>= ${amountUsd.toFixed(2)} USD</Text>
-        </View>
+        </LinearGradient>
 
         <Text style={styles.sectionTitle}>Datos bancarios destino</Text>
         <View style={styles.bankCard}>
@@ -119,11 +125,15 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.offWhite },
   scroll: { flex: 1, paddingHorizontal: Spacing.screenPadding },
   summary: {
-    backgroundColor: Colors.navy,
     borderRadius: 20,
     padding: 24,
     alignItems: 'center',
     marginVertical: 16,
+    shadowColor: Colors.navy,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 4,
   },
   summaryLabel: { ...Typography.labelLarge, color: 'rgba(255,255,255,0.6)', letterSpacing: 1 },
   summaryAmount: { fontSize: 40, fontFamily: 'Inter_700Bold', color: Colors.mint, marginTop: 8 },

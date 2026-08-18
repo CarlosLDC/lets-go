@@ -8,7 +8,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { Colors } from '../../constants/colors';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Colors, Gradients } from '../../constants/colors';
 import { Typography } from '../../constants/typography';
 import { Spacing } from '../../constants/spacing';
 import { PaymentMethodCard } from '../../components/ui/PaymentMethodCard';
@@ -66,10 +67,15 @@ export default function RechargeScreen() {
     <SafeAreaView style={styles.safe} edges={['bottom']}>
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
         {/* Balance info */}
-        <View style={styles.balanceInfo}>
+        <LinearGradient
+          colors={Gradients.darkCard}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.balanceInfo}
+        >
           <Text style={styles.balanceLabel}>Saldo actual</Text>
           <Text style={styles.balanceValue}>${balanceUsd.toFixed(2)} USD</Text>
-        </View>
+        </LinearGradient>
 
         {/* Amount selector */}
         <View style={styles.section}>
@@ -151,13 +157,17 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.offWhite },
   scroll: { flex: 1, paddingHorizontal: Spacing.screenPadding },
   balanceInfo: {
-    backgroundColor: Colors.navy,
     borderRadius: 20,
     padding: 20,
     marginVertical: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    shadowColor: Colors.navy,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 4,
   },
   balanceLabel: { ...Typography.bodyMedium, color: 'rgba(255,255,255,0.65)' },
   balanceValue: { ...Typography.headlineLarge, color: Colors.mint, fontWeight: '700' },
