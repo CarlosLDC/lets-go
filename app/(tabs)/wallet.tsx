@@ -10,25 +10,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Colors } from '../../constants/colors';
 import { Typography } from '../../constants/typography';
+import { Spacing } from '../../constants/spacing';
 import { BalanceCard } from '../../components/ui/BalanceCard';
 import { TransactionItem } from '../../components/ui/TransactionItem';
 import { useAppStore } from '../../store/useAppStore';
-import {
-  PagoMovilIcon,
-  ZelleIcon,
-  TransferIcon,
-  BinanceIcon,
-} from '../../components/icons/ParkingIcons';
 
 export default function WalletScreen() {
   const { balanceUsd, balanceBs, transactions } = useAppStore();
-
-  const rechargeOptions = [
-    { label: 'Pago Móvil', icon: <PagoMovilIcon size={36} />, route: '/recharge/pago-movil' },
-    { label: 'Zelle', icon: <ZelleIcon size={36} />, route: '/recharge/zelle' },
-    { label: 'Transferencia', icon: <TransferIcon size={36} />, route: '/recharge/transferencia' },
-    { label: 'Binance Pay', icon: <BinanceIcon size={36} />, route: '/recharge/zelle' },
-  ];
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -45,28 +33,6 @@ export default function WalletScreen() {
           balanceBs={balanceBs}
           onRecharge={() => router.push('/recharge')}
         />
-
-        {/* Quick recharge */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Recargar con</Text>
-        </View>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.quickRow}
-        >
-          {rechargeOptions.map((opt) => (
-            <TouchableOpacity
-              key={opt.label}
-              style={styles.quickCard}
-              onPress={() => router.push(opt.route as any)}
-              activeOpacity={0.75}
-            >
-              {opt.icon}
-              <Text style={styles.quickLabel}>{opt.label}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
 
         {/* Stats bar */}
         <View style={styles.statsRow}>
@@ -139,25 +105,6 @@ const styles = StyleSheet.create({
   },
   sectionTitle: { ...Typography.headlineMedium, color: Colors.textPrimary },
   seeAll: { ...Typography.labelLarge, color: Colors.mint },
-  quickRow: {
-    paddingHorizontal: 16,
-    gap: 12,
-    paddingBottom: 4,
-  },
-  quickCard: {
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: Colors.white,
-    borderRadius: 16,
-    padding: 16,
-    width: 88,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  quickLabel: { ...Typography.caption, color: Colors.textSecondary, textAlign: 'center' },
   statsRow: {
     flexDirection: 'row',
     backgroundColor: Colors.white,
