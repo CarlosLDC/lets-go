@@ -184,6 +184,8 @@ export default function ParkingScreen() {
   );
 }
 
+import { Spacing } from '../../constants/spacing';
+
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.offWhite },
   scroll: { flex: 1 },
@@ -254,7 +256,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     gap: 10,
   },
-  selectorTitle: { ...Typography.titleMedium, color: Colors.textPrimary, fontWeight: '700', marginBottom: 6 },
+  selectorTitle: { ...Typography.titleMedium, color: Colors.textPrimary, fontWeight: '700', marginBottom: Spacing.titleToContent },
   spotOption: {
     flexDirection: 'row',
     alignItems: 'center',

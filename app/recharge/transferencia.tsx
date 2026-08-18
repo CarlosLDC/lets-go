@@ -113,9 +113,11 @@ export default function TransferenciaScreen() {
   );
 }
 
+import { Spacing } from '../../constants/spacing';
+
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.offWhite },
-  scroll: { flex: 1, paddingHorizontal: 16 },
+  scroll: { flex: 1, paddingHorizontal: Spacing.screenPadding },
   summary: {
     backgroundColor: Colors.navy,
     borderRadius: 20,
@@ -126,12 +128,12 @@ const styles = StyleSheet.create({
   summaryLabel: { ...Typography.labelLarge, color: 'rgba(255,255,255,0.6)', letterSpacing: 1 },
   summaryAmount: { fontSize: 40, fontFamily: 'Inter_700Bold', color: Colors.mint, marginTop: 8 },
   summaryUsd: { ...Typography.bodyMedium, color: 'rgba(255,255,255,0.6)', marginTop: 4 },
-  sectionTitle: { ...Typography.headlineMedium, color: Colors.textPrimary, marginBottom: 14 },
+  sectionTitle: { ...Typography.headlineMedium, color: Colors.textPrimary, marginBottom: Spacing.titleToContent },
   bankCard: {
     backgroundColor: Colors.white,
     borderRadius: 18,
     overflow: 'hidden',
-    marginBottom: 20,
+    marginBottom: Spacing.sectionGap,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
@@ -154,11 +156,11 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.warning + '20',
     borderRadius: 14,
     padding: 16,
-    marginBottom: 24,
+    marginBottom: Spacing.sectionGap,
     borderLeftWidth: 3,
     borderLeftColor: Colors.warning,
   },
-  importantTitle: { ...Typography.titleMedium, color: Colors.textPrimary, fontWeight: '700', marginBottom: 8 },
+  importantTitle: { ...Typography.titleMedium, color: Colors.textPrimary, fontWeight: '700', marginBottom: Spacing.titleToContent },
   importantText: { ...Typography.bodySmall, color: Colors.textSecondary, lineHeight: 22 },
   bold: { fontWeight: '700', color: Colors.textPrimary },
   confirmBtn: { marginBottom: 12 },

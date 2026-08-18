@@ -152,9 +152,11 @@ export default function PagoMovilScreen() {
   );
 }
 
+import { Spacing } from '../../constants/spacing';
+
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.offWhite },
-  scroll: { flex: 1, paddingHorizontal: 16 },
+  scroll: { flex: 1, paddingHorizontal: Spacing.screenPadding },
   summary: {
     backgroundColor: Colors.navy,
     borderRadius: 20,
@@ -169,17 +171,17 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     borderRadius: 16,
     padding: 16,
-    marginBottom: 20,
+    marginBottom: Spacing.sectionGap,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 8,
     elevation: 3,
   },
-  instructionsTitle: { ...Typography.titleMedium, color: Colors.textPrimary, fontWeight: '700', marginBottom: 10 },
+  instructionsTitle: { ...Typography.titleMedium, color: Colors.textPrimary, fontWeight: '700', marginBottom: Spacing.titleToContent },
   instructionsText: { ...Typography.bodySmall, color: Colors.textSecondary, lineHeight: 22 },
   bold: { fontWeight: '700', color: Colors.textPrimary },
-  formTitle: { ...Typography.titleMedium, color: Colors.textPrimary, fontWeight: '700', marginBottom: 14 },
+  formTitle: { ...Typography.titleMedium, color: Colors.textPrimary, fontWeight: '700', marginBottom: Spacing.titleToContent },
   bankSelector: {
     backgroundColor: Colors.white,
     borderRadius: 14,

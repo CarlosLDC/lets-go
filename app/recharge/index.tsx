@@ -10,6 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Colors } from '../../constants/colors';
 import { Typography } from '../../constants/typography';
+import { Spacing } from '../../constants/spacing';
 import { PaymentMethodCard } from '../../components/ui/PaymentMethodCard';
 import {
   PagoMovilIcon,
@@ -118,27 +119,26 @@ export default function RechargeScreen() {
         {/* Payment methods */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Método de pago</Text>
-        </View>
-
-        <View style={styles.methodsList}>
-          {paymentMethods.map((method) => (
-            <PaymentMethodCard
-              key={method.title}
-              icon={method.icon}
-              title={method.title}
-              subtitle={method.subtitle}
-              badge={method.badge}
-              onPress={() => {
-                if (selectedAmount) {
-                  router.push({
-                    pathname: method.route as any,
-                    params: { amount: selectedAmount.toString() },
-                  });
-                }
-              }}
-              disabled={!selectedAmount}
-            />
-          ))}
+          <View style={styles.methodsList}>
+            {paymentMethods.map((method) => (
+              <PaymentMethodCard
+                key={method.title}
+                icon={method.icon}
+                title={method.title}
+                subtitle={method.subtitle}
+                badge={method.badge}
+                onPress={() => {
+                  if (selectedAmount) {
+                    router.push({
+                      pathname: method.route as any,
+                      params: { amount: selectedAmount.toString() },
+                    });
+                  }
+                }}
+                disabled={!selectedAmount}
+              />
+            ))}
+          </View>
         </View>
 
         <View style={{ height: 32 }} />
@@ -149,7 +149,7 @@ export default function RechargeScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.offWhite },
-  scroll: { flex: 1, paddingHorizontal: 16 },
+  scroll: { flex: 1, paddingHorizontal: Spacing.screenPadding },
   balanceInfo: {
     backgroundColor: Colors.navy,
     borderRadius: 20,
@@ -161,12 +161,12 @@ const styles = StyleSheet.create({
   },
   balanceLabel: { ...Typography.bodyMedium, color: 'rgba(255,255,255,0.65)' },
   balanceValue: { ...Typography.headlineLarge, color: Colors.mint, fontWeight: '700' },
-  section: { marginTop: 8, marginBottom: 12 },
-  sectionTitle: { ...Typography.headlineMedium, color: Colors.textPrimary },
+  section: { marginTop: Spacing.sectionGap },
+  sectionTitle: { ...Typography.headlineMedium, color: Colors.textPrimary, marginBottom: Spacing.titleToContent },
   amountGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
+    gap: Spacing.itemGap,
   },
   amountBtn: {
     width: '30%',
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.mint + '18',
     borderRadius: 14,
     padding: 14,
-    marginVertical: 8,
+    marginTop: Spacing.md,
   },
   feeText: { ...Typography.bodySmall, color: Colors.navyLight, lineHeight: 18 },
   methodsList: { gap: 0 },

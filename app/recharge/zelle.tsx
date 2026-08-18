@@ -153,12 +153,14 @@ export default function ZelleScreen() {
   );
 }
 
+import { Spacing } from '../../constants/spacing';
+
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.offWhite },
-  scroll: { flex: 1, paddingHorizontal: 16 },
+  scroll: { flex: 1, paddingHorizontal: Spacing.screenPadding },
   methodTabs: {
     flexDirection: 'row',
-    gap: 10,
+    gap: Spacing.itemGap,
     marginTop: 16,
     marginBottom: 16,
   },
@@ -185,7 +187,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 24,
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: Spacing.sectionGap,
   },
   summaryLabel: { ...Typography.labelLarge, color: 'rgba(255,255,255,0.6)', letterSpacing: 1 },
   summaryAmount: { fontSize: 48, fontFamily: 'Inter_700Bold', color: Colors.mint, marginTop: 8 },
@@ -194,14 +196,14 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     borderRadius: 16,
     padding: 16,
-    marginBottom: 20,
+    marginBottom: Spacing.sectionGap,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 8,
     elevation: 3,
   },
-  instructionsTitle: { ...Typography.titleMedium, color: Colors.textPrimary, fontWeight: '700', marginBottom: 10 },
+  instructionsTitle: { ...Typography.titleMedium, color: Colors.textPrimary, fontWeight: '700', marginBottom: Spacing.titleToContent },
   instructionsText: { ...Typography.bodySmall, color: Colors.textSecondary, lineHeight: 24 },
   input: { backgroundColor: Colors.white, marginBottom: 14 },
   secureNote: {
