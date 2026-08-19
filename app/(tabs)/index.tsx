@@ -49,7 +49,7 @@ export default function HomeScreen() {
           balanceUsd={balanceUsd}
           balanceBs={balanceBs}
           onRecharge={() => router.push('/recharge')}
-          onHistory={() => router.push('/(tabs)/wallet')}
+          onHistory={() => router.push('/history')}
         />
 
         {/* Map placeholder */}
