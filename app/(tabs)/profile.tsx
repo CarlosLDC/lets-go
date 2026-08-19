@@ -112,6 +112,7 @@ export default function ProfileScreen() {
     updateVehicle,
     removeVehicle,
     setDefaultVehicle,
+    activeSessions,
   } = useAppStore();
 
   // Vehicle Modal State
@@ -207,6 +208,14 @@ export default function ProfileScreen() {
   };
 
   const handleDeleteVehicle = (vehicle: Vehicle) => {
+    if (activeSessions.some((session) => session.vehicleId === vehicle.id)) {
+      Alert.alert(
+        'Vehículo en uso',
+        'Cancela la reserva activa de este vehículo antes de eliminarlo.'
+      );
+      return;
+    }
+
     Alert.alert(
       'Eliminar vehículo',
       `¿Estás seguro de que deseas eliminar el vehículo ${vehicle.brand} ${vehicle.model} (${vehicle.plate})?`,

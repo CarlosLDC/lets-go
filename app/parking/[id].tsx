@@ -19,7 +19,7 @@ import { formatIntervalDuration, formatSpotPrice } from '../../utils/parking';
 export default function ParkingDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const spot = MOCK_PARKING_SPOTS.find((s) => s.id === id);
-  const { activeSession } = useAppStore();
+  const { activeSessions, vehicles } = useAppStore();
 
   if (!spot) return (
     <SafeAreaView style={styles.safe}>
@@ -159,31 +159,48 @@ export default function ParkingDetailScreen() {
 
         {/* CTA */}
         <View style={styles.cta}>
-          {activeSession?.spotId === spot.id ? (
+          {activeSessions.some((session) => session.spotId === spot.id) && (
             <View style={styles.activeSessionInfo}>
               <Text style={styles.activeSessionText}>✅ Tienes una reserva activa aquí</Text>
               <AppButton
                 label="Ver reserva"
-                onPress={() => router.push('/(tabs)/parking')}
+                onPress={() =>
+                  router.push({
+                    pathname: '/(tabs)/parking',
+                    params: { spotId: spot.id, view: 'contracted' },
+                  })
+                }
                 variant="outline"
                 style={{ marginTop: 12 }}
               />
             </View>
-          ) : (
-            <AppButton
-              label={
-                !spot.isOpen
-                  ? 'Cerrado'
-                  : `Parquear aquí · ${formatSpotPrice(spot).usd}`
-              }
-              onPress={() =>
-                router.push({ pathname: '/(tabs)/parking', params: { spotId: spot.id } })
-              }
-              variant="primary"
-              disabled={!spot.isOpen || spot.availableSpots === 0 || Boolean(activeSession)}
-              icon="play"
-            />
           )}
+          <AppButton
+            label={
+              !spot.isOpen
+                ? 'Cerrado'
+                : `Parquear aquí · ${formatSpotPrice(spot).usd}`
+            }
+            onPress={() =>
+              router.push({
+                pathname: '/(tabs)/parking',
+                params: { spotId: spot.id, view: 'book' },
+              })
+            }
+            variant="primary"
+            disabled={
+              !spot.isOpen ||
+              spot.availableSpots === 0 ||
+              vehicles.length === 0 ||
+              vehicles.every((v) => activeSessions.some((s) => s.vehicleId === v.id))
+            }
+            icon="play"
+            style={
+              activeSessions.some((session) => session.spotId === spot.id)
+                ? { marginTop: 12 }
+                : undefined
+            }
+          />
         </View>
 
         <View style={{ height: 32 }} />

@@ -3,9 +3,11 @@ import { MOCK_TRANSACTIONS, MOCK_VEHICLES, ParkingSpot, Transaction, Vehicle } f
 import { REFUND_WINDOW_MS } from '../utils/parking';
 
 export interface ActiveSession {
+  id: string;
   spotId: string;
   spotName: string;
   startTime: Date;
+  vehicleId: string;
   vehiclePlate: string;
   billingType: ParkingSpot['billingType'];
   amountPaidUsd: number;
@@ -37,16 +39,16 @@ interface AppState {
   // Transactions
   transactions: Transaction[];
 
-  // Active parking session
-  activeSession: ActiveSession | null;
+  // Active parking sessions (one per vehicle)
+  activeSessions: ActiveSession[];
 
   // Actions
   login: (phone: string, cedula: string) => void;
   logout: () => void;
   addBalance: (amountUsd: number) => void;
   startParking: (spot: ParkingSpot, intervals?: number, vehicleId?: string) => ParkingActionResult;
-  extendParking: (intervals: number) => ParkingActionResult;
-  cancelParking: () => ParkingActionResult;
+  extendParking: (sessionId: string, intervals: number) => ParkingActionResult;
+  cancelParking: (sessionId: string) => ParkingActionResult;
   addTransaction: (tx: Omit<Transaction, 'id'>) => void;
   addVehicle: (vehicle: Omit<Vehicle, 'id'>) => void;
   updateVehicle: (id: string, vehicle: Partial<Omit<Vehicle, 'id'>>) => void;
@@ -70,7 +72,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   transactions: MOCK_TRANSACTIONS,
 
-  activeSession: null,
+  activeSessions: [],
 
   // Actions
   login: (phone, cedula) => set({ isAuthenticated: true, userPhone: phone, userCedula: cedula }),
@@ -85,17 +87,16 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   startParking: (spot, intervals = 1, vehicleId) => {
-    const { activeSession, vehicles, defaultVehicle, balanceUsd, exchangeRate, addBalance, addTransaction } = get();
-
-    if (activeSession) {
-      return { ok: false, message: 'Ya tienes un parqueo activo. Cancélalo antes de iniciar otro.' };
-    }
+    const { activeSessions, vehicles, defaultVehicle, balanceUsd, exchangeRate, addBalance, addTransaction } = get();
 
     const vehicle =
       (vehicleId ? vehicles.find((v) => v.id === vehicleId) : null) ?? defaultVehicle;
 
     if (!vehicle) {
       return { ok: false, message: 'Debes registrar al menos un vehículo en tu perfil antes de iniciar un parqueo.' };
+    }
+    if (activeSessions.some((session) => session.vehicleId === vehicle.id)) {
+      return { ok: false, message: 'Este vehículo ya está en un estacionamiento.' };
     }
     if (!spot.isOpen) {
       return { ok: false, message: 'Este estacionamiento está cerrado.' };
@@ -114,9 +115,11 @@ export const useAppStore = create<AppState>((set, get) => ({
     const now = new Date();
     const intervalMinutes = spot.intervalMinutes ?? 60;
     const session: ActiveSession = {
+      id: `s${Date.now()}`,
       spotId: spot.id,
       spotName: spot.name,
       startTime: now,
+      vehicleId: vehicle.id,
       vehiclePlate: vehicle.plate,
       billingType: spot.billingType,
       amountPaidUsd: amountUsd,
@@ -142,7 +145,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       date: now,
       status: 'completed',
     });
-    set({ activeSession: session });
+    set((state) => ({ activeSessions: [session, ...state.activeSessions] }));
 
     return {
       ok: true,
@@ -152,26 +155,27 @@ export const useAppStore = create<AppState>((set, get) => ({
     };
   },
 
-  extendParking: (intervals) => {
-    const { activeSession, balanceUsd, exchangeRate, addBalance, addTransaction } = get();
-    if (!activeSession) {
+  extendParking: (sessionId, intervals) => {
+    const { activeSessions, balanceUsd, exchangeRate, addBalance, addTransaction } = get();
+    const session = activeSessions.find((item) => item.id === sessionId);
+    if (!session) {
       return { ok: false, message: 'No hay una reserva activa.' };
     }
-    if (activeSession.billingType !== 'time_range' || !activeSession.reservedUntil || !activeSession.intervalMinutes || activeSession.pricePerIntervalUsd === undefined) {
+    if (session.billingType !== 'time_range' || !session.reservedUntil || !session.intervalMinutes || session.pricePerIntervalUsd === undefined) {
       return { ok: false, message: 'Este parqueo es de pago único y no se puede extender.' };
     }
 
     const count = Math.max(1, intervals);
-    const amountUsd = activeSession.pricePerIntervalUsd * count;
+    const amountUsd = session.pricePerIntervalUsd * count;
     if (balanceUsd < amountUsd) {
       return { ok: false, message: `Saldo insuficiente. Necesitas $${amountUsd.toFixed(2)}.` };
     }
 
     const now = new Date();
-    const base = activeSession.reservedUntil.getTime() > now.getTime()
-      ? activeSession.reservedUntil
+    const base = session.reservedUntil.getTime() > now.getTime()
+      ? session.reservedUntil
       : now;
-    const reservedUntil = new Date(base.getTime() + count * activeSession.intervalMinutes * 60 * 1000);
+    const reservedUntil = new Date(base.getTime() + count * session.intervalMinutes * 60 * 1000);
 
     addBalance(-amountUsd);
     addTransaction({
@@ -179,31 +183,32 @@ export const useAppStore = create<AppState>((set, get) => ({
       amount: amountUsd,
       currency: 'USD',
       amountBs: Math.round(amountUsd * exchangeRate),
-      description: `Extensión de tiempo · ${activeSession.spotName}`,
-      parkingSpotName: activeSession.spotName,
+      description: `Extensión de tiempo · ${session.spotName}`,
+      parkingSpotName: session.spotName,
       date: now,
       status: 'completed',
     });
     set({
-      activeSession: {
-        ...activeSession,
-        amountPaidUsd: activeSession.amountPaidUsd + amountUsd,
-        reservedUntil,
-      },
+      activeSessions: activeSessions.map((item) =>
+        item.id === sessionId
+          ? { ...item, amountPaidUsd: item.amountPaidUsd + amountUsd, reservedUntil }
+          : item
+      ),
     });
 
     return { ok: true, message: `Se agregó tiempo por $${amountUsd.toFixed(2)}.` };
   },
 
-  cancelParking: () => {
-    const { activeSession, exchangeRate, addBalance, addTransaction } = get();
-    if (!activeSession) {
+  cancelParking: (sessionId) => {
+    const { activeSessions, exchangeRate, addBalance, addTransaction } = get();
+    const session = activeSessions.find((item) => item.id === sessionId);
+    if (!session) {
       return { ok: false, message: 'No hay una reserva activa.' };
     }
 
-    const elapsedMs = Date.now() - activeSession.startTime.getTime();
+    const elapsedMs = Date.now() - session.startTime.getTime();
     const refundable = elapsedMs <= REFUND_WINDOW_MS;
-    const refundUsd = refundable ? activeSession.amountPaidUsd : 0;
+    const refundUsd = refundable ? session.amountPaidUsd : 0;
 
     if (refundUsd > 0) {
       addBalance(refundUsd);
@@ -212,14 +217,14 @@ export const useAppStore = create<AppState>((set, get) => ({
         amount: refundUsd,
         currency: 'USD',
         amountBs: Math.round(refundUsd * exchangeRate),
-        description: `Reembolso · ${activeSession.spotName}`,
-        parkingSpotName: activeSession.spotName,
+        description: `Reembolso · ${session.spotName}`,
+        parkingSpotName: session.spotName,
         date: new Date(),
         status: 'completed',
       });
     }
 
-    set({ activeSession: null });
+    set({ activeSessions: activeSessions.filter((item) => item.id !== sessionId) });
 
     return {
       ok: true,
@@ -287,6 +292,9 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   removeVehicle: (id) => {
+    const busy = get().activeSessions.some((session) => session.vehicleId === id);
+    if (busy) return;
+
     set((state) => {
       const remaining = state.vehicles.filter((v) => v.id !== id);
       if (remaining.length === 0) {
