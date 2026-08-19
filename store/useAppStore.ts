@@ -38,6 +38,7 @@ interface AppState {
   setActiveSession: (session: ActiveSession | null) => void;
   addTransaction: (tx: Omit<Transaction, 'id'>) => void;
   addVehicle: (vehicle: Omit<Vehicle, 'id'>) => void;
+  removeVehicle: (id: string) => void;
   setDefaultVehicle: (id: string) => void;
 }
 
@@ -79,14 +80,68 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   addVehicle: (vehicle) => {
-    const newVehicle: Vehicle = { ...vehicle, id: `v${Date.now()}` };
-    set((state) => ({ vehicles: [...state.vehicles, newVehicle] }));
+    const newId = `v${Date.now()}`;
+    set((state) => {
+      const isFirst = state.vehicles.length === 0;
+      const shouldBeDefault = isFirst || Boolean(vehicle.isDefault);
+      const newVehicle: Vehicle = {
+        ...vehicle,
+        id: newId,
+        isDefault: shouldBeDefault,
+      };
+
+      const updatedVehicles = shouldBeDefault
+        ? state.vehicles.map((v) => ({ ...v, isDefault: false })).concat(newVehicle)
+        : [...state.vehicles, newVehicle];
+
+      return {
+        vehicles: updatedVehicles,
+        defaultVehicle: shouldBeDefault ? newVehicle : state.defaultVehicle,
+      };
+    });
+  },
+
+  removeVehicle: (id) => {
+    set((state) => {
+      const remaining = state.vehicles.filter((v) => v.id !== id);
+      if (remaining.length === 0) {
+        return {
+          vehicles: [],
+          defaultVehicle: null,
+        };
+      }
+
+      // If removed vehicle was the default, set first remaining as default
+      const wasDefault = state.defaultVehicle?.id === id || !remaining.some((v) => v.isDefault);
+      if (wasDefault) {
+        const updatedRemaining = remaining.map((v, index) => ({
+          ...v,
+          isDefault: index === 0,
+        }));
+        return {
+          vehicles: updatedRemaining,
+          defaultVehicle: updatedRemaining[0],
+        };
+      }
+
+      return {
+        vehicles: remaining,
+        defaultVehicle: remaining.find((v) => v.isDefault) || remaining[0],
+      };
+    });
   },
 
   setDefaultVehicle: (id) => {
-    set((state) => ({
-      vehicles: state.vehicles.map((v) => ({ ...v, isDefault: v.id === id })),
-      defaultVehicle: state.vehicles.find((v) => v.id === id) || null,
-    }));
+    set((state) => {
+      const updatedVehicles = state.vehicles.map((v) => ({
+        ...v,
+        isDefault: v.id === id,
+      }));
+      const newDefault = updatedVehicles.find((v) => v.id === id) || null;
+      return {
+        vehicles: updatedVehicles,
+        defaultVehicle: newDefault,
+      };
+    });
   },
 }));

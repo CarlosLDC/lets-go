@@ -51,6 +51,17 @@ export default function ParkingScreen() {
     : 0;
 
   const startParking = () => {
+    if (!defaultVehicle) {
+      Alert.alert(
+        'Sin vehículo',
+        'Debes registrar al menos un vehículo en tu perfil antes de iniciar un parqueo.',
+        [
+          { text: 'Ir a perfil', onPress: () => router.push('/(tabs)/profile') },
+          { text: 'Cancelar', style: 'cancel' },
+        ]
+      );
+      return;
+    }
     if (balanceUsd < 0.50) {
       Alert.alert('Saldo insuficiente', 'Necesitas al menos $0.50 para iniciar un parqueo.');
       return;
@@ -59,7 +70,7 @@ export default function ParkingScreen() {
       spotId: selectedSpot.id,
       spotName: selectedSpot.name,
       startTime: new Date(),
-      vehiclePlate: defaultVehicle?.plate || 'N/A',
+      vehiclePlate: defaultVehicle.plate,
       pricePerHourUsd: selectedSpot.pricePerHourUsd,
     });
   };
@@ -169,7 +180,9 @@ export default function ParkingScreen() {
             <View style={styles.vehicleInfo}>
               <Text style={styles.vehicleLabel}>Vehículo seleccionado</Text>
               <Text style={styles.vehiclePlate}>
-                🚗 {defaultVehicle?.plate} — {defaultVehicle?.brand} {defaultVehicle?.model}
+                {defaultVehicle
+                  ? `🚗 ${defaultVehicle.plate} — ${defaultVehicle.brand} ${defaultVehicle.model}`
+                  : '⚠️ Ningún vehículo registrado'}
               </Text>
             </View>
 
