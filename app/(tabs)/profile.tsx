@@ -305,12 +305,13 @@ export default function ProfileScreen() {
             </View>
           ) : (
             vehicles.map((v) => (
-              <View key={v.id} style={styles.vehicleItem}>
-                <TouchableOpacity
-                  style={styles.vehicleItemLeft}
-                  onPress={() => handleOpenEditModal(v)}
-                  activeOpacity={0.7}
-                >
+              <TouchableOpacity
+                key={v.id}
+                style={styles.vehicleItem}
+                onPress={() => handleOpenEditModal(v)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.vehicleItemLeft}>
                   <View style={styles.vehicleIconContainer}>
                     <Text style={styles.vehicleEmoji}>🚗</Text>
                   </View>
@@ -334,34 +335,24 @@ export default function ProfileScreen() {
                       ) : null}
                     </View>
                   </View>
-                </TouchableOpacity>
+                </View>
 
                 <View style={styles.vehicleActions}>
                   {!v.isDefault && (
                     <TouchableOpacity
                       style={styles.makeDefaultBtn}
-                      onPress={() => handleSetDefault(v)}
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        handleSetDefault(v);
+                      }}
                       accessibilityLabel="Marcar como principal"
                     >
                       <Text style={styles.makeDefaultText}>Hacer principal</Text>
                     </TouchableOpacity>
                   )}
-                  <TouchableOpacity
-                    style={styles.actionIconBtn}
-                    onPress={() => handleOpenEditModal(v)}
-                    accessibilityLabel="Editar vehículo"
-                  >
-                    <Text style={styles.actionIcon}>✏️</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.actionIconBtn}
-                    onPress={() => handleDeleteVehicle(v)}
-                    accessibilityLabel="Eliminar vehículo"
-                  >
-                    <Text style={styles.actionIcon}>🗑️</Text>
-                  </TouchableOpacity>
+                  <Text style={styles.settingArrow}>›</Text>
                 </View>
-              </View>
+              </TouchableOpacity>
             ))
           )}
 
@@ -688,6 +679,21 @@ export default function ProfileScreen() {
                   variant="primary"
                   style={styles.saveButton}
                 />
+                {editingVehicleId && (
+                  <TouchableOpacity
+                    style={styles.modalDeleteButton}
+                    onPress={() => {
+                      const currentVehicle = vehicles.find((v) => v.id === editingVehicleId);
+                      if (currentVehicle) {
+                        handleDeleteVehicle(currentVehicle);
+                        setModalVisible(false);
+                      }
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.modalDeleteButtonText}>🗑️  Eliminar vehículo</Text>
+                  </TouchableOpacity>
+                )}
                 <AppButton
                   label="Cancelar"
                   onPress={() => setModalVisible(false)}
@@ -1106,5 +1112,21 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     marginBottom: 4,
+  },
+  modalDeleteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    borderRadius: 14,
+    backgroundColor: Colors.error + '14',
+    borderWidth: 1,
+    borderColor: Colors.error + '33',
+    marginVertical: 4,
+  },
+  modalDeleteButtonText: {
+    ...Typography.titleMedium,
+    color: Colors.error,
+    fontWeight: '700',
   },
 });
