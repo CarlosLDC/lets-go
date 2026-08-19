@@ -21,6 +21,54 @@ import { AppButton } from '../../components/ui/AppButton';
 import { useAppStore } from '../../store/useAppStore';
 import { Vehicle } from '../../data/mock';
 
+const ALL_BRANDS = [
+  'Toyota',
+  'Chevrolet',
+  'Ford',
+  'Chery',
+  'Hyundai',
+  'Kia',
+  'Nissan',
+  'Jeep',
+  'Mitsubishi',
+  'Volkswagen',
+  'Honda',
+  'Mazda',
+  'Renault',
+  'Fiat',
+  'Peugeot',
+  'BMW',
+  'Mercedes-Benz',
+  'Audi',
+  'BYD',
+  'JAC',
+  'Changan',
+  'Dongfeng',
+  'Suzuki',
+  'Subaru',
+  'Volvo',
+  'Dodge',
+  'Chrysler',
+];
+
+const ALL_COLORS = [
+  'Blanco',
+  'Negro',
+  'Plata',
+  'Gris',
+  'Gris Plomo',
+  'Azul',
+  'Azul Marino',
+  'Rojo',
+  'Vinotinto',
+  'Verde',
+  'Dorado',
+  'Beige',
+  'Amarillo',
+  'Naranja',
+  'Marrón',
+];
+
 const QUICK_BRANDS = ['Toyota', 'Chevrolet', 'Ford', 'Chery', 'Hyundai', 'Kia', 'Nissan'];
 const QUICK_COLORS = ['Blanco', 'Negro', 'Plata', 'Gris', 'Azul', 'Rojo'];
 
@@ -61,29 +109,50 @@ export default function ProfileScreen() {
     vehicles,
     logout,
     addVehicle,
+    updateVehicle,
     removeVehicle,
     setDefaultVehicle,
   } = useAppStore();
 
-  // Add Vehicle Modal State
+  // Vehicle Modal State
   const [modalVisible, setModalVisible] = useState(false);
+  const [editingVehicleId, setEditingVehicleId] = useState<string | null>(null);
   const [brand, setBrand] = useState('');
   const [model, setModel] = useState('');
   const [plate, setPlate] = useState('');
   const [color, setColor] = useState('');
   const [isDefault, setIsDefault] = useState(false);
 
+  // Dropdown visibility states
+  const [showBrandDropdown, setShowBrandDropdown] = useState(false);
+  const [showColorDropdown, setShowColorDropdown] = useState(false);
+
   const resetForm = () => {
+    setEditingVehicleId(null);
     setBrand('');
     setModel('');
     setPlate('');
     setColor('');
     setIsDefault(vehicles.length === 0);
+    setShowBrandDropdown(false);
+    setShowColorDropdown(false);
   };
 
   const handleOpenAddModal = () => {
     resetForm();
     setIsDefault(vehicles.length === 0);
+    setModalVisible(true);
+  };
+
+  const handleOpenEditModal = (vehicle: Vehicle) => {
+    setShowBrandDropdown(false);
+    setShowColorDropdown(false);
+    setEditingVehicleId(vehicle.id);
+    setBrand(vehicle.brand);
+    setModel(vehicle.model);
+    setPlate(vehicle.plate);
+    setColor(vehicle.color || '');
+    setIsDefault(vehicle.isDefault);
     setModalVisible(true);
   };
 
@@ -106,17 +175,35 @@ export default function ProfileScreen() {
       return;
     }
 
-    addVehicle({
-      brand: cleanBrand,
-      model: cleanModel,
-      plate: cleanPlate,
-      color: cleanColor,
-      isDefault,
-    });
-
-    setModalVisible(false);
-    resetForm();
-    Alert.alert('Vehículo registrado', `El vehículo ${cleanBrand} ${cleanModel} ha sido agregado exitosamente.`);
+    if (editingVehicleId) {
+      updateVehicle(editingVehicleId, {
+        brand: cleanBrand,
+        model: cleanModel,
+        plate: cleanPlate,
+        color: cleanColor,
+        isDefault,
+      });
+      setModalVisible(false);
+      resetForm();
+      Alert.alert(
+        'Vehículo actualizado',
+        `El vehículo ${cleanBrand} ${cleanModel} se ha modificado con éxito.`
+      );
+    } else {
+      addVehicle({
+        brand: cleanBrand,
+        model: cleanModel,
+        plate: cleanPlate,
+        color: cleanColor,
+        isDefault,
+      });
+      setModalVisible(false);
+      resetForm();
+      Alert.alert(
+        'Vehículo registrado',
+        `El vehículo ${cleanBrand} ${cleanModel} ha sido agregado exitosamente.`
+      );
+    }
   };
 
   const handleDeleteVehicle = (vehicle: Vehicle) => {
@@ -154,9 +241,22 @@ export default function ProfileScreen() {
     ]);
   };
 
+  // Filtered dropdown lists
+  const filteredBrands = brand.trim()
+    ? ALL_BRANDS.filter((b) => b.toLowerCase().includes(brand.toLowerCase()))
+    : ALL_BRANDS;
+
+  const filteredColors = color.trim()
+    ? ALL_COLORS.filter((c) => c.toLowerCase().includes(color.toLowerCase()))
+    : ALL_COLORS;
+
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scroll}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
         <Text style={styles.title}>Perfil</Text>
 
         {/* Avatar */}
@@ -190,7 +290,9 @@ export default function ProfileScreen() {
         <View style={styles.card}>
           <View style={styles.cardHeaderRow}>
             <Text style={styles.cardTitle}>Mis vehículos</Text>
-            <Text style={styles.vehicleCountBadge}>{vehicles.length} registrado{vehicles.length !== 1 ? 's' : ''}</Text>
+            <Text style={styles.vehicleCountBadge}>
+              {vehicles.length} registrado{vehicles.length !== 1 ? 's' : ''}
+            </Text>
           </View>
 
           {vehicles.length === 0 ? (
@@ -204,7 +306,11 @@ export default function ProfileScreen() {
           ) : (
             vehicles.map((v) => (
               <View key={v.id} style={styles.vehicleItem}>
-                <View style={styles.vehicleItemLeft}>
+                <TouchableOpacity
+                  style={styles.vehicleItemLeft}
+                  onPress={() => handleOpenEditModal(v)}
+                  activeOpacity={0.7}
+                >
                   <View style={styles.vehicleIconContainer}>
                     <Text style={styles.vehicleEmoji}>🚗</Text>
                   </View>
@@ -228,7 +334,7 @@ export default function ProfileScreen() {
                       ) : null}
                     </View>
                   </View>
-                </View>
+                </TouchableOpacity>
 
                 <View style={styles.vehicleActions}>
                   {!v.isDefault && (
@@ -241,11 +347,18 @@ export default function ProfileScreen() {
                     </TouchableOpacity>
                   )}
                   <TouchableOpacity
-                    style={styles.deleteVehicleBtn}
+                    style={styles.actionIconBtn}
+                    onPress={() => handleOpenEditModal(v)}
+                    accessibilityLabel="Editar vehículo"
+                  >
+                    <Text style={styles.actionIcon}>✏️</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.actionIconBtn}
                     onPress={() => handleDeleteVehicle(v)}
                     accessibilityLabel="Eliminar vehículo"
                   >
-                    <Text style={styles.deleteVehicleIcon}>🗑️</Text>
+                    <Text style={styles.actionIcon}>🗑️</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -283,7 +396,7 @@ export default function ProfileScreen() {
         <View style={{ height: 32 }} />
       </ScrollView>
 
-      {/* Add Vehicle Modal */}
+      {/* Add / Edit Vehicle Modal */}
       <Modal
         visible={modalVisible}
         animationType="slide"
@@ -297,8 +410,14 @@ export default function ProfileScreen() {
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <View>
-                <Text style={styles.modalTitle}>Agregar Vehículo</Text>
-                <Text style={styles.modalSubtitle}>Ingresa los datos de tu carro o moto</Text>
+                <Text style={styles.modalTitle}>
+                  {editingVehicleId ? 'Editar Vehículo' : 'Agregar Vehículo'}
+                </Text>
+                <Text style={styles.modalSubtitle}>
+                  {editingVehicleId
+                    ? 'Modifica los datos de tu vehículo'
+                    : 'Ingresa los datos de tu carro o moto'}
+                </Text>
               </View>
               <TouchableOpacity
                 style={styles.modalCloseBtn}
@@ -308,23 +427,80 @@ export default function ProfileScreen() {
               </TouchableOpacity>
             </View>
 
-            <ScrollView showsVerticalScrollIndicator={false} style={styles.modalScroll}>
-              {/* Quick Brand Selector */}
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              style={styles.modalScroll}
+              keyboardShouldPersistTaps="handled"
+            >
+              {/* Brand Input & Dropdown */}
               <Text style={styles.inputLabel}>Marca</Text>
               <TextInput
                 placeholder="Ej: Toyota, Chevrolet, Ford..."
                 value={brand}
-                onChangeText={setBrand}
+                onChangeText={(val) => {
+                  setBrand(val);
+                  setShowBrandDropdown(true);
+                  setShowColorDropdown(false);
+                }}
+                onFocus={() => {
+                  setShowBrandDropdown(true);
+                  setShowColorDropdown(false);
+                }}
                 mode="outlined"
                 style={styles.modalInput}
                 outlineColor={Colors.border}
                 activeOutlineColor={Colors.mint}
                 textColor={Colors.textPrimary}
+                right={
+                  <TextInput.Icon
+                    icon={showBrandDropdown ? 'chevron-up' : 'chevron-down'}
+                    onPress={() => setShowBrandDropdown(!showBrandDropdown)}
+                    color={Colors.textSecondary}
+                  />
+                }
               />
+
+              {/* Brand Dropdown Menu */}
+              {showBrandDropdown && filteredBrands.length > 0 && (
+                <View style={styles.dropdownBox}>
+                  <ScrollView
+                    nestedScrollEnabled
+                    style={styles.dropdownScroll}
+                    keyboardShouldPersistTaps="handled"
+                  >
+                    {filteredBrands.map((item) => (
+                      <TouchableOpacity
+                        key={item}
+                        style={[
+                          styles.dropdownItem,
+                          brand.toLowerCase() === item.toLowerCase() && styles.dropdownItemSelected,
+                        ]}
+                        onPress={() => {
+                          setBrand(item);
+                          setShowBrandDropdown(false);
+                        }}
+                      >
+                        <Text
+                          style={[
+                            styles.dropdownItemText,
+                            brand.toLowerCase() === item.toLowerCase() &&
+                              styles.dropdownItemTextSelected,
+                          ]}
+                        >
+                          🚗  {item}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
+
+              {/* Quick Brand Chips */}
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.chipsContainer}
+                keyboardShouldPersistTaps="handled"
               >
                 {QUICK_BRANDS.map((item) => (
                   <TouchableOpacity
@@ -333,7 +509,10 @@ export default function ProfileScreen() {
                       styles.chip,
                       brand.toLowerCase() === item.toLowerCase() && styles.chipSelected,
                     ]}
-                    onPress={() => setBrand(item)}
+                    onPress={() => {
+                      setBrand(item);
+                      setShowBrandDropdown(false);
+                    }}
                   >
                     <Text
                       style={[
@@ -352,7 +531,15 @@ export default function ProfileScreen() {
               <TextInput
                 placeholder="Ej: Corolla, Spark, Aveo, Yaris..."
                 value={model}
-                onChangeText={setModel}
+                onChangeText={(val) => {
+                  setModel(val);
+                  setShowBrandDropdown(false);
+                  setShowColorDropdown(false);
+                }}
+                onFocus={() => {
+                  setShowBrandDropdown(false);
+                  setShowColorDropdown(false);
+                }}
                 mode="outlined"
                 style={styles.modalInput}
                 outlineColor={Colors.border}
@@ -365,7 +552,15 @@ export default function ProfileScreen() {
               <TextInput
                 placeholder="Ej: AC123BC"
                 value={plate}
-                onChangeText={(val) => setPlate(val.toUpperCase())}
+                onChangeText={(val) => {
+                  setPlate(val.toUpperCase());
+                  setShowBrandDropdown(false);
+                  setShowColorDropdown(false);
+                }}
+                onFocus={() => {
+                  setShowBrandDropdown(false);
+                  setShowColorDropdown(false);
+                }}
                 autoCapitalize="characters"
                 mode="outlined"
                 style={styles.modalInput}
@@ -375,22 +570,75 @@ export default function ProfileScreen() {
                 left={<TextInput.Icon icon="card-bulleted" color={Colors.textSecondary} />}
               />
 
-              {/* Color */}
+              {/* Color Input & Dropdown */}
               <Text style={styles.inputLabel}>Color</Text>
               <TextInput
                 placeholder="Ej: Blanco, Negro, Plata..."
                 value={color}
-                onChangeText={setColor}
+                onChangeText={(val) => {
+                  setColor(val);
+                  setShowColorDropdown(true);
+                  setShowBrandDropdown(false);
+                }}
+                onFocus={() => {
+                  setShowColorDropdown(true);
+                  setShowBrandDropdown(false);
+                }}
                 mode="outlined"
                 style={styles.modalInput}
                 outlineColor={Colors.border}
                 activeOutlineColor={Colors.mint}
                 textColor={Colors.textPrimary}
+                right={
+                  <TextInput.Icon
+                    icon={showColorDropdown ? 'chevron-up' : 'chevron-down'}
+                    onPress={() => setShowColorDropdown(!showColorDropdown)}
+                    color={Colors.textSecondary}
+                  />
+                }
               />
+
+              {/* Color Dropdown Menu */}
+              {showColorDropdown && filteredColors.length > 0 && (
+                <View style={styles.dropdownBox}>
+                  <ScrollView
+                    nestedScrollEnabled
+                    style={styles.dropdownScroll}
+                    keyboardShouldPersistTaps="handled"
+                  >
+                    {filteredColors.map((c) => (
+                      <TouchableOpacity
+                        key={c}
+                        style={[
+                          styles.dropdownItem,
+                          color.toLowerCase() === c.toLowerCase() && styles.dropdownItemSelected,
+                        ]}
+                        onPress={() => {
+                          setColor(c);
+                          setShowColorDropdown(false);
+                        }}
+                      >
+                        <Text
+                          style={[
+                            styles.dropdownItemText,
+                            color.toLowerCase() === c.toLowerCase() &&
+                              styles.dropdownItemTextSelected,
+                          ]}
+                        >
+                          🎨  {c}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
+
+              {/* Quick Color Chips */}
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.chipsContainer}
+                keyboardShouldPersistTaps="handled"
               >
                 {QUICK_COLORS.map((c) => (
                   <TouchableOpacity
@@ -399,7 +647,10 @@ export default function ProfileScreen() {
                       styles.chip,
                       color.toLowerCase() === c.toLowerCase() && styles.chipSelected,
                     ]}
-                    onPress={() => setColor(c)}
+                    onPress={() => {
+                      setColor(c);
+                      setShowColorDropdown(false);
+                    }}
                   >
                     <Text
                       style={[
@@ -432,7 +683,7 @@ export default function ProfileScreen() {
               {/* Action Buttons */}
               <View style={styles.modalActions}>
                 <AppButton
-                  label="Guardar vehículo"
+                  label={editingVehicleId ? 'Guardar cambios' : 'Guardar vehículo'}
                   onPress={handleSaveVehicle}
                   variant="primary"
                   style={styles.saveButton}
@@ -609,7 +860,7 @@ const styles = StyleSheet.create({
   vehicleActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 4,
     marginLeft: 8,
   },
   makeDefaultBtn: {
@@ -617,18 +868,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 6,
     borderRadius: 8,
+    marginRight: 2,
   },
   makeDefaultText: {
     ...Typography.caption,
     color: Colors.navy,
     fontWeight: '600',
   },
-  deleteVehicleBtn: {
-    padding: 8,
+  actionIconBtn: {
+    padding: 6,
     borderRadius: 8,
+    backgroundColor: Colors.surfaceVariant,
   },
-  deleteVehicleIcon: {
-    fontSize: 16,
+  actionIcon: {
+    fontSize: 14,
   },
   emptyVehicles: {
     alignItems: 'center',
@@ -763,6 +1016,41 @@ const styles = StyleSheet.create({
   modalInput: {
     backgroundColor: Colors.white,
     marginBottom: 8,
+  },
+  dropdownBox: {
+    backgroundColor: Colors.white,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    marginBottom: 10,
+    marginTop: -4,
+    maxHeight: 160,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 4,
+    overflow: 'hidden',
+  },
+  dropdownScroll: {
+    maxHeight: 160,
+  },
+  dropdownItem: {
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.borderLight,
+  },
+  dropdownItemSelected: {
+    backgroundColor: Colors.mintSurface,
+  },
+  dropdownItemText: {
+    ...Typography.bodyMedium,
+    color: Colors.textPrimary,
+  },
+  dropdownItemTextSelected: {
+    color: Colors.mintDark,
+    fontWeight: '700',
   },
   chipsContainer: {
     flexDirection: 'row',

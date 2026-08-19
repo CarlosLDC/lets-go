@@ -38,6 +38,7 @@ interface AppState {
   setActiveSession: (session: ActiveSession | null) => void;
   addTransaction: (tx: Omit<Transaction, 'id'>) => void;
   addVehicle: (vehicle: Omit<Vehicle, 'id'>) => void;
+  updateVehicle: (id: string, vehicle: Partial<Omit<Vehicle, 'id'>>) => void;
   removeVehicle: (id: string) => void;
   setDefaultVehicle: (id: string) => void;
 }
@@ -97,6 +98,36 @@ export const useAppStore = create<AppState>((set, get) => ({
       return {
         vehicles: updatedVehicles,
         defaultVehicle: shouldBeDefault ? newVehicle : state.defaultVehicle,
+      };
+    });
+  },
+
+  updateVehicle: (id, updated) => {
+    set((state) => {
+      const willBeDefault = Boolean(updated.isDefault);
+      let updatedVehicles = state.vehicles.map((v) => {
+        if (v.id === id) {
+          return {
+            ...v,
+            ...updated,
+            isDefault: willBeDefault ? true : v.isDefault,
+          };
+        }
+        return willBeDefault ? { ...v, isDefault: false } : v;
+      });
+
+      let newDefault = updatedVehicles.find((v) => v.isDefault) || null;
+      if (!newDefault && updatedVehicles.length > 0) {
+        updatedVehicles = updatedVehicles.map((v, i) => ({
+          ...v,
+          isDefault: i === 0,
+        }));
+        newDefault = updatedVehicles[0];
+      }
+
+      return {
+        vehicles: updatedVehicles,
+        defaultVehicle: newDefault,
       };
     });
   },
