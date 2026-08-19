@@ -255,35 +255,36 @@ export default function ParkingScreen() {
                 <ParkingSpotCard
                   spot={selectedSpot}
                   onPress={() => setSelectedSpot(null)}
+                  footer={
+                    selectedSpot.billingType === 'time_range' ? (
+                      <View>
+                        <Text style={styles.selectorTitle}>¿Cuánto tiempo reservas?</Text>
+                        <View style={styles.intervalRow}>
+                          {EXTEND_OPTIONS.map((count) => {
+                            const selected = intervals === count;
+                            return (
+                              <TouchableOpacity
+                                key={count}
+                                onPress={() => setIntervals(count)}
+                                style={[styles.intervalChip, selected && styles.intervalChipSelected]}
+                              >
+                                <Text style={[styles.intervalChipText, selected && styles.intervalChipTextSelected]}>
+                                  {formatIntervalDuration(selectedSpot.intervalMinutes ?? 60, count)}
+                                </Text>
+                              </TouchableOpacity>
+                            );
+                          })}
+                        </View>
+                        <Text style={styles.planHint}>
+                          ${selectedSpot.priceUsd.toFixed(2)} cada {formatIntervalLabel(selectedSpot.intervalMinutes ?? 60)}.
+                          Puedes pagar más tiempo después.
+                        </Text>
+                      </View>
+                    ) : undefined
+                  }
                 />
 
                 <View style={styles.checkout}>
-                  {selectedSpot.billingType === 'time_range' && (
-                    <View style={styles.planCard}>
-                      <Text style={styles.selectorTitle}>¿Cuánto tiempo reservas?</Text>
-                      <View style={styles.intervalRow}>
-                        {EXTEND_OPTIONS.map((count) => {
-                          const selected = intervals === count;
-                          return (
-                            <TouchableOpacity
-                              key={count}
-                              onPress={() => setIntervals(count)}
-                              style={[styles.intervalChip, selected && styles.intervalChipSelected]}
-                            >
-                              <Text style={[styles.intervalChipText, selected && styles.intervalChipTextSelected]}>
-                                {formatIntervalDuration(selectedSpot.intervalMinutes ?? 60, count)}
-                              </Text>
-                            </TouchableOpacity>
-                          );
-                        })}
-                      </View>
-                      <Text style={styles.planHint}>
-                        ${selectedSpot.priceUsd.toFixed(2)} cada {formatIntervalLabel(selectedSpot.intervalMinutes ?? 60)}.
-                        Puedes pagar más tiempo después.
-                      </Text>
-                    </View>
-                  )}
-
                   <View style={styles.vehicleSelector}>
                     <Text style={styles.selectorTitle}>Vehículo</Text>
                     {vehicles.length === 0 ? (
@@ -791,18 +792,6 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     fontWeight: '700',
     marginBottom: Spacing.titleToContent,
-  },
-  planCard: {
-    marginHorizontal: 16,
-    marginTop: 16,
-    backgroundColor: Colors.white,
-    borderRadius: 16,
-    padding: 14,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
   },
   planHint: {
     ...Typography.bodySmall,

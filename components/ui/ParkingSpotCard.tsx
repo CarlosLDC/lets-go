@@ -10,6 +10,7 @@ interface ParkingSpotCardProps {
   spot: ParkingSpot;
   onPress: () => void;
   compact?: boolean;
+  footer?: React.ReactNode;
 }
 
 const AvailabilityBadge: React.FC<{ available: number; total: number }> = ({ available, total }) => {
@@ -30,54 +31,68 @@ const AvailabilityBadge: React.FC<{ available: number; total: number }> = ({ ava
   );
 };
 
-export const ParkingSpotCard: React.FC<ParkingSpotCardProps> = ({ spot, onPress, compact = false }) => {
+export const ParkingSpotCard: React.FC<ParkingSpotCardProps> = ({
+  spot,
+  onPress,
+  compact = false,
+  footer,
+}) => {
   const price = formatSpotPrice(spot);
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.8} style={[styles.card, compact && styles.compact]}>
-      <View style={styles.top}>
-        <View style={styles.nameRow}>
-          <Text style={styles.name} numberOfLines={1}>{spot.name}</Text>
-          {spot.isOpen ? (
-            <AvailabilityBadge available={spot.availableSpots} total={spot.totalSpots} />
-          ) : (
-            <View style={[styles.badge, { backgroundColor: Colors.error + '20' }]}>
-              <Text style={[styles.badgeText, { color: Colors.error }]}>Cerrado</Text>
-            </View>
-          )}
-        </View>
-        <Text style={styles.address} numberOfLines={1}>{spot.address}</Text>
-      </View>
-
-      <View style={styles.bottom}>
-        <View style={styles.priceBlock}>
-          <Text style={styles.priceUsd}>{price.usd}</Text>
-          <Text style={styles.priceBs}>≈ {price.bs}</Text>
-        </View>
-
-        {!compact && (
-          <View style={styles.meta}>
-            <Text style={styles.metaText}>⭐ {spot.rating}</Text>
-            {spot.distance !== undefined && (
-              <Text style={styles.metaText}>📍 {spot.distance} km</Text>
+    <View style={[styles.card, compact && styles.compact]}>
+      <TouchableOpacity onPress={onPress} activeOpacity={0.8}>
+        <View style={styles.top}>
+          <View style={styles.nameRow}>
+            <Text style={styles.name} numberOfLines={1}>{spot.name}</Text>
+            {spot.isOpen ? (
+              <AvailabilityBadge available={spot.availableSpots} total={spot.totalSpots} />
+            ) : (
+              <View style={[styles.badge, { backgroundColor: Colors.error + '20' }]}>
+                <Text style={[styles.badgeText, { color: Colors.error }]}>Cerrado</Text>
+              </View>
             )}
           </View>
-        )}
-
-        <View style={styles.ratingBlock}>
-          <Text style={styles.rating}>⭐ {spot.rating}</Text>
+          <Text style={styles.address} numberOfLines={1}>{spot.address}</Text>
         </View>
-      </View>
 
-      {!compact && spot.features.length > 0 && (
-        <View style={styles.features}>
-          {spot.features.slice(0, 2).map((f, i) => (
-            <View key={i} style={styles.featureChip}>
-              <Text style={styles.featureText}>{f}</Text>
+        <View style={styles.bottom}>
+          <View style={styles.priceBlock}>
+            <Text style={styles.priceUsd}>{price.usd}</Text>
+            <Text style={styles.priceBs}>≈ {price.bs}</Text>
+          </View>
+
+          {!compact && (
+            <View style={styles.meta}>
+              <Text style={styles.metaText}>⭐ {spot.rating}</Text>
+              {spot.distance !== undefined && (
+                <Text style={styles.metaText}>📍 {spot.distance} km</Text>
+              )}
             </View>
-          ))}
+          )}
+
+          <View style={styles.ratingBlock}>
+            <Text style={styles.rating}>⭐ {spot.rating}</Text>
+          </View>
         </View>
-      )}
-    </TouchableOpacity>
+
+        {!compact && spot.features.length > 0 && (
+          <View style={styles.features}>
+            {spot.features.slice(0, 2).map((f, i) => (
+              <View key={i} style={styles.featureChip}>
+                <Text style={styles.featureText}>{f}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+      </TouchableOpacity>
+
+      {footer ? (
+        <>
+          <View style={styles.separator} />
+          <View>{footer}</View>
+        </>
+      ) : null}
+    </View>
   );
 };
 
@@ -179,5 +194,11 @@ const styles = StyleSheet.create({
   featureText: {
     ...Typography.caption,
     color: Colors.textSecondary,
+  },
+  separator: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: Colors.border,
+    marginTop: 14,
+    marginBottom: 14,
   },
 });
