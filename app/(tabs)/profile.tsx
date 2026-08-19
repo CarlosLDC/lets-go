@@ -338,18 +338,6 @@ export default function ProfileScreen() {
                 </View>
 
                 <View style={styles.vehicleActions}>
-                  {!v.isDefault && (
-                    <TouchableOpacity
-                      style={styles.makeDefaultBtn}
-                      onPress={(e) => {
-                        e.stopPropagation();
-                        handleSetDefault(v);
-                      }}
-                      accessibilityLabel="Marcar como principal"
-                    >
-                      <Text style={styles.makeDefaultText}>Hacer principal</Text>
-                    </TouchableOpacity>
-                  )}
                   <Text style={styles.settingArrow}>›</Text>
                 </View>
               </TouchableOpacity>
@@ -866,28 +854,7 @@ const styles = StyleSheet.create({
   vehicleActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
     marginLeft: 8,
-  },
-  makeDefaultBtn: {
-    backgroundColor: Colors.surfaceVariant,
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    borderRadius: 8,
-    marginRight: 2,
-  },
-  makeDefaultText: {
-    ...Typography.caption,
-    color: Colors.navy,
-    fontWeight: '600',
-  },
-  actionIconBtn: {
-    padding: 6,
-    borderRadius: 8,
-    backgroundColor: Colors.surfaceVariant,
-  },
-  actionIcon: {
-    fontSize: 14,
   },
   emptyVehicles: {
     alignItems: 'center',
