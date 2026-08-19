@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Chip } from 'react-native-paper';
 import { Colors } from '../../constants/colors';
 import { Typography } from '../../constants/typography';
+import { Spacing } from '../../constants/spacing';
 import { ParkingSpot } from '../../data/mock';
 
 interface ParkingSpotCardProps {
@@ -84,6 +85,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     borderRadius: 20,
     padding: 16,
+    marginHorizontal: Spacing.screenPadding,
     marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
