@@ -34,6 +34,10 @@ export function formatSpotPrice(spot: ParkingSpot): { usd: string; bs: string; s
   };
 }
 
+export function billingTypeLabel(spot: ParkingSpot): string {
+  return spot.billingType === 'one_time' ? 'Pago único' : 'Por tiempo';
+}
+
 export type PriceFilter = 'all' | 'lt050' | '050_150' | 'gt150';
 export type DistanceFilter = 'all' | 'lt1' | 'lt3';
 export type BillingFilter = 'all' | ParkingSpot['billingType'];
