@@ -243,7 +243,7 @@ export default function ParkingScreen() {
         {tab === 'available' ? (
           <View>
             {selectedSpot ? (
-              <View>
+              <View style={styles.selectedFlow}>
                 <TouchableOpacity
                   style={styles.backToList}
                   onPress={() => setSelectedSpot(null)}
@@ -255,9 +255,10 @@ export default function ParkingScreen() {
                 <ParkingSpotCard
                   spot={selectedSpot}
                   onPress={() => setSelectedSpot(null)}
+                  style={styles.selectedCard}
                   footer={
                     selectedSpot.billingType === 'time_range' ? (
-                      <View>
+                      <View style={styles.planSection}>
                         <Text style={styles.selectorTitle}>¿Cuánto tiempo reservas?</Text>
                         <View style={styles.intervalRow}>
                           {EXTEND_OPTIONS.map((count) => {
@@ -284,83 +285,81 @@ export default function ParkingScreen() {
                   }
                 />
 
-                <View style={styles.checkout}>
-                  <View style={styles.vehicleSelector}>
-                    <Text style={styles.selectorTitle}>Vehículo</Text>
-                    {vehicles.length === 0 ? (
-                      <TouchableOpacity
-                        style={styles.emptyVehicle}
-                        onPress={() => router.push('/(tabs)/profile')}
-                        activeOpacity={0.8}
-                      >
-                        <Text style={styles.emptyVehicleText}>⚠️ Agrega un vehículo en tu perfil</Text>
-                      </TouchableOpacity>
-                    ) : (
-                      vehicles.map((vehicle) => {
-                        const busy = busyVehicleIds.has(vehicle.id);
-                        const selected = selectedVehicleId === vehicle.id && !busy;
-                        return (
-                          <TouchableOpacity
-                            key={vehicle.id}
-                            style={[
-                              styles.vehicleOption,
-                              selected && styles.vehicleOptionSelected,
-                              busy && styles.vehicleOptionBusy,
-                            ]}
-                            onPress={() => {
-                              if (busy) return;
-                              setSelectedVehicleId(vehicle.id);
-                            }}
-                            activeOpacity={busy ? 1 : 0.8}
-                            disabled={busy}
-                          >
-                            <View style={styles.vehicleOptionInfo}>
-                              <View style={styles.vehicleNameRow}>
-                                <Text style={[styles.vehicleOptionName, busy && styles.vehicleBusyText]}>
-                                  {vehicle.brand} {vehicle.model}
-                                </Text>
-                                {vehicle.isDefault && (
-                                  <View style={styles.defaultBadge}>
-                                    <Text style={styles.defaultBadgeText}>Principal</Text>
-                                  </View>
-                                )}
-                                {busy && (
-                                  <View style={styles.busyBadge}>
-                                    <Text style={styles.busyBadgeText}>En uso</Text>
-                                  </View>
-                                )}
-                              </View>
-                              <Text style={[styles.vehicleOptionPlate, busy && styles.vehicleBusyText]}>
-                                {vehicle.plate}
+                <View style={styles.vehicleSelector}>
+                  <Text style={styles.selectorTitle}>Vehículo</Text>
+                  {vehicles.length === 0 ? (
+                    <TouchableOpacity
+                      style={styles.emptyVehicle}
+                      onPress={() => router.push('/(tabs)/profile')}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={styles.emptyVehicleText}>⚠️ Agrega un vehículo en tu perfil</Text>
+                    </TouchableOpacity>
+                  ) : (
+                    vehicles.map((vehicle) => {
+                      const busy = busyVehicleIds.has(vehicle.id);
+                      const selected = selectedVehicleId === vehicle.id && !busy;
+                      return (
+                        <TouchableOpacity
+                          key={vehicle.id}
+                          style={[
+                            styles.vehicleOption,
+                            selected && styles.vehicleOptionSelected,
+                            busy && styles.vehicleOptionBusy,
+                          ]}
+                          onPress={() => {
+                            if (busy) return;
+                            setSelectedVehicleId(vehicle.id);
+                          }}
+                          activeOpacity={busy ? 1 : 0.8}
+                          disabled={busy}
+                        >
+                          <View style={styles.vehicleOptionInfo}>
+                            <View style={styles.vehicleNameRow}>
+                              <Text style={[styles.vehicleOptionName, busy && styles.vehicleBusyText]}>
+                                {vehicle.brand} {vehicle.model}
                               </Text>
+                              {vehicle.isDefault && (
+                                <View style={styles.defaultBadge}>
+                                  <Text style={styles.defaultBadgeText}>Principal</Text>
+                                </View>
+                              )}
+                              {busy && (
+                                <View style={styles.busyBadge}>
+                                  <Text style={styles.busyBadgeText}>En uso</Text>
+                                </View>
+                              )}
                             </View>
-                            {selected && <Text style={styles.vehicleCheck}>✓</Text>}
-                          </TouchableOpacity>
-                        );
-                      })
-                    )}
-                    {allVehiclesBusy && (
-                      <Text style={styles.planHint}>
-                        Todos tus vehículos están en un estacionamiento. Cancela o espera a que termine el tiempo.
-                      </Text>
-                    )}
-                  </View>
+                            <Text style={[styles.vehicleOptionPlate, busy && styles.vehicleBusyText]}>
+                              {vehicle.plate}
+                            </Text>
+                          </View>
+                          {selected && <Text style={styles.vehicleCheck}>✓</Text>}
+                        </TouchableOpacity>
+                      );
+                    })
+                  )}
+                  {allVehiclesBusy && (
+                    <Text style={styles.planHint}>
+                      Todos tus vehículos están en un estacionamiento. Cancela o espera a que termine el tiempo.
+                    </Text>
+                  )}
+                </View>
 
-                  <View style={styles.startBlock}>
-                    <AppButton
-                      label={`Pagar $${startCost.toFixed(2)} e iniciar`}
-                      onPress={handleStart}
-                      variant="primary"
-                      icon="play"
-                      disabled={
-                        !selectedSpot.isOpen ||
-                        selectedSpot.availableSpots === 0 ||
-                        balanceUsd < startCost ||
-                        !selectedVehicleId ||
-                        allVehiclesBusy
-                      }
-                    />
-                  </View>
+                <View style={styles.startBlock}>
+                  <AppButton
+                    label={`Pagar $${startCost.toFixed(2)} e iniciar`}
+                    onPress={handleStart}
+                    variant="primary"
+                    icon="play"
+                    disabled={
+                      !selectedSpot.isOpen ||
+                      selectedSpot.availableSpots === 0 ||
+                      balanceUsd < startCost ||
+                      !selectedVehicleId ||
+                      allVehiclesBusy
+                    }
+                  />
                 </View>
               </View>
             ) : (
@@ -686,16 +685,16 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 6,
   },
-  checkout: {
-    marginTop: 8,
-    paddingBottom: 8,
+  selectedFlow: {
+    marginTop: Spacing.titleToContent,
+    gap: Spacing.sectionGap,
+  },
+  selectedCard: {
+    marginBottom: 0,
   },
   backToList: {
-    marginHorizontal: 16,
-    marginTop: 8,
-    marginBottom: 8,
+    marginHorizontal: Spacing.screenPadding,
     alignSelf: 'flex-start',
-    paddingVertical: 8,
     paddingHorizontal: 4,
   },
   backToListText: {
@@ -791,12 +790,13 @@ const styles = StyleSheet.create({
     ...Typography.titleMedium,
     color: Colors.textPrimary,
     fontWeight: '700',
-    marginBottom: Spacing.titleToContent,
+  },
+  planSection: {
+    gap: Spacing.titleToContent,
   },
   planHint: {
     ...Typography.bodySmall,
     color: Colors.textSecondary,
-    marginTop: 8,
   },
   intervalRow: {
     flexDirection: 'row',
@@ -824,9 +824,8 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   vehicleSelector: {
-    marginHorizontal: 16,
-    marginTop: 16,
-    gap: 10,
+    marginHorizontal: Spacing.screenPadding,
+    gap: Spacing.titleToContent,
   },
   vehicleOption: {
     flexDirection: 'row',
@@ -906,5 +905,5 @@ const styles = StyleSheet.create({
     ...Typography.bodyMedium,
     color: Colors.textSecondary,
   },
-  startBlock: { marginHorizontal: 16, marginTop: 20 },
+  startBlock: { marginHorizontal: Spacing.screenPadding },
 });

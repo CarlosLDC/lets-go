@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, type ViewStyle } from 'react-native';
 import { Colors } from '../../constants/colors';
 import { Typography } from '../../constants/typography';
 import { Spacing } from '../../constants/spacing';
@@ -11,6 +11,7 @@ interface ParkingSpotCardProps {
   onPress: () => void;
   compact?: boolean;
   footer?: React.ReactNode;
+  style?: ViewStyle;
 }
 
 const AvailabilityBadge: React.FC<{ available: number; total: number }> = ({ available, total }) => {
@@ -36,10 +37,11 @@ export const ParkingSpotCard: React.FC<ParkingSpotCardProps> = ({
   onPress,
   compact = false,
   footer,
+  style,
 }) => {
   const price = formatSpotPrice(spot);
   return (
-    <View style={[styles.card, compact && styles.compact]}>
+    <View style={[styles.card, compact && styles.compact, style]}>
       <TouchableOpacity onPress={onPress} activeOpacity={0.8}>
         <View style={styles.top}>
           <View style={styles.nameRow}>
@@ -198,7 +200,6 @@ const styles = StyleSheet.create({
   separator: {
     height: StyleSheet.hairlineWidth,
     backgroundColor: Colors.border,
-    marginTop: 14,
-    marginBottom: 14,
+    marginVertical: Spacing.titleToContent,
   },
 });
