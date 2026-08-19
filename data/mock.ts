@@ -1,3 +1,5 @@
+export type BillingType = 'one_time' | 'time_range';
+
 export interface ParkingSpot {
   id: string;
   name: string;
@@ -7,8 +9,12 @@ export interface ParkingSpot {
   longitude: number;
   availableSpots: number;
   totalSpots: number;
-  pricePerHourBs: number;
-  pricePerHourUsd: number;
+  billingType: BillingType;
+  /** Precio por intervalo (time_range) o tarifa fija (one_time). */
+  priceUsd: number;
+  priceBs: number;
+  /** Duración de cada intervalo cobrado. Solo aplica a time_range. */
+  intervalMinutes?: number;
   rating: number;
   distance?: number; // km
   isOpen: boolean;
@@ -55,8 +61,10 @@ export const MOCK_PARKING_SPOTS: ParkingSpot[] = [
     longitude: -66.8532,
     availableSpots: 45,
     totalSpots: 200,
-    pricePerHourBs: 120,
-    pricePerHourUsd: 0.30,
+    billingType: 'time_range',
+    intervalMinutes: 60,
+    priceUsd: 0.30,
+    priceBs: 120,
     rating: 4.6,
     distance: 0.4,
     isOpen: true,
@@ -72,8 +80,10 @@ export const MOCK_PARKING_SPOTS: ParkingSpot[] = [
     longitude: -66.8586,
     availableSpots: 12,
     totalSpots: 80,
-    pricePerHourBs: 100,
-    pricePerHourUsd: 0.25,
+    billingType: 'time_range',
+    intervalMinutes: 15,
+    priceUsd: 0.10,
+    priceBs: 40,
     rating: 4.3,
     distance: 1.1,
     isOpen: true,
@@ -89,8 +99,9 @@ export const MOCK_PARKING_SPOTS: ParkingSpot[] = [
     longitude: -66.8455,
     availableSpots: 28,
     totalSpots: 60,
-    pricePerHourBs: 80,
-    pricePerHourUsd: 0.20,
+    billingType: 'one_time',
+    priceUsd: 1.50,
+    priceBs: 600,
     rating: 3.9,
     distance: 2.3,
     isOpen: true,
@@ -106,8 +117,9 @@ export const MOCK_PARKING_SPOTS: ParkingSpot[] = [
     longitude: -68.0052,
     availableSpots: 0,
     totalSpots: 40,
-    pricePerHourBs: 90,
-    pricePerHourUsd: 0.22,
+    billingType: 'one_time',
+    priceUsd: 2.00,
+    priceBs: 800,
     rating: 4.1,
     distance: 0.7,
     isOpen: false,
@@ -123,8 +135,10 @@ export const MOCK_PARKING_SPOTS: ParkingSpot[] = [
     longitude: -66.8620,
     availableSpots: 7,
     totalSpots: 30,
-    pricePerHourBs: 150,
-    pricePerHourUsd: 0.38,
+    billingType: 'time_range',
+    intervalMinutes: 1,
+    priceUsd: 0.02,
+    priceBs: 8,
     rating: 4.8,
     distance: 3.1,
     isOpen: true,

@@ -1,10 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Chip } from 'react-native-paper';
 import { Colors } from '../../constants/colors';
 import { Typography } from '../../constants/typography';
 import { Spacing } from '../../constants/spacing';
 import { ParkingSpot } from '../../data/mock';
+import { billingTypeLabel, formatSpotPrice } from '../../utils/parking';
 
 interface ParkingSpotCardProps {
   spot: ParkingSpot;
@@ -31,6 +31,7 @@ const AvailabilityBadge: React.FC<{ available: number; total: number }> = ({ ava
 };
 
 export const ParkingSpotCard: React.FC<ParkingSpotCardProps> = ({ spot, onPress, compact = false }) => {
+  const price = formatSpotPrice(spot);
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.8} style={[styles.card, compact && styles.compact]}>
       <View style={styles.top}>
@@ -45,12 +46,13 @@ export const ParkingSpotCard: React.FC<ParkingSpotCardProps> = ({ spot, onPress,
           )}
         </View>
         <Text style={styles.address} numberOfLines={1}>{spot.address}</Text>
+        <Text style={styles.billing}>{billingTypeLabel(spot)}</Text>
       </View>
 
       <View style={styles.bottom}>
         <View style={styles.priceBlock}>
-          <Text style={styles.priceUsd}>${spot.pricePerHourUsd.toFixed(2)}/h</Text>
-          <Text style={styles.priceBs}>≈ Bs.{spot.pricePerHourBs}/h</Text>
+          <Text style={styles.priceUsd}>{price.usd}</Text>
+          <Text style={styles.priceBs}>≈ {price.bs}</Text>
         </View>
 
         {!compact && (
@@ -117,6 +119,12 @@ const styles = StyleSheet.create({
   address: {
     ...Typography.bodySmall,
     color: Colors.textSecondary,
+  },
+  billing: {
+    ...Typography.caption,
+    color: Colors.mintDark,
+    fontWeight: '700',
+    marginTop: 4,
   },
   badge: {
     flexDirection: 'row',

@@ -14,11 +14,12 @@ import { Typography } from '../../constants/typography';
 import { AppButton } from '../../components/ui/AppButton';
 import { MOCK_PARKING_SPOTS } from '../../data/mock';
 import { useAppStore } from '../../store/useAppStore';
+import { billingTypeLabel, formatIntervalDuration, formatSpotPrice } from '../../utils/parking';
 
 export default function ParkingDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const spot = MOCK_PARKING_SPOTS.find((s) => s.id === id);
-  const { activeSession, defaultVehicle } = useAppStore();
+  const { activeSession } = useAppStore();
 
   if (!spot) return (
     <SafeAreaView style={styles.safe}>
@@ -60,8 +61,8 @@ export default function ParkingDetailScreen() {
         {/* Quick stats */}
         <View style={styles.statsRow}>
           <View style={styles.stat}>
-            <Text style={styles.statValue}>${spot.pricePerHourUsd}</Text>
-            <Text style={styles.statLabel}>/hora USD</Text>
+            <Text style={styles.statValue}>{formatSpotPrice(spot).usd}</Text>
+            <Text style={styles.statLabel}>{formatSpotPrice(spot).short}</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.stat}>
@@ -116,38 +117,74 @@ export default function ParkingDetailScreen() {
           <Text style={styles.sectionTitle}>Tarifas</Text>
           <View style={styles.pricingCard}>
             <View style={styles.pricingRow}>
-              <Text style={styles.pricingLabel}>1 hora</Text>
-              <Text style={styles.pricingValue}>
-                ${spot.pricePerHourUsd.toFixed(2)} / Bs.{spot.pricePerHourBs}
-              </Text>
+              <Text style={styles.pricingLabel}>Tipo de cobro</Text>
+              <Text style={styles.pricingValue}>{billingTypeLabel(spot)}</Text>
             </View>
-            <View style={styles.pricingRow}>
-              <Text style={styles.pricingLabel}>2 horas</Text>
-              <Text style={styles.pricingValue}>
-                ${(spot.pricePerHourUsd * 2).toFixed(2)} / Bs.{spot.pricePerHourBs * 2}
-              </Text>
-            </View>
-            <View style={styles.pricingRow}>
-              <Text style={styles.pricingLabel}>Día completo</Text>
-              <Text style={styles.pricingValue}>
-                ${(spot.pricePerHourUsd * 8).toFixed(2)} / Bs.{spot.pricePerHourBs * 8}
-              </Text>
-            </View>
+            {spot.billingType === 'one_time' ? (
+              <View style={[styles.pricingRow, { borderBottomWidth: 0 }]}>
+                <Text style={styles.pricingLabel}>Entrada</Text>
+                <Text style={styles.pricingValue}>
+                  ${spot.priceUsd.toFixed(2)} / Bs.{spot.priceBs.toLocaleString('es-VE')}
+                </Text>
+              </View>
+            ) : (
+              <>
+                <View style={styles.pricingRow}>
+                  <Text style={styles.pricingLabel}>
+                    {formatIntervalDuration(spot.intervalMinutes ?? 60, 1)}
+                  </Text>
+                  <Text style={styles.pricingValue}>
+                    ${spot.priceUsd.toFixed(2)} / Bs.{spot.priceBs.toLocaleString('es-VE')}
+                  </Text>
+                </View>
+                <View style={styles.pricingRow}>
+                  <Text style={styles.pricingLabel}>
+                    {formatIntervalDuration(spot.intervalMinutes ?? 60, 2)}
+                  </Text>
+                  <Text style={styles.pricingValue}>
+                    ${(spot.priceUsd * 2).toFixed(2)} / Bs.{(spot.priceBs * 2).toLocaleString('es-VE')}
+                  </Text>
+                </View>
+                <View style={[styles.pricingRow, { borderBottomWidth: 0 }]}>
+                  <Text style={styles.pricingLabel}>
+                    {formatIntervalDuration(spot.intervalMinutes ?? 60, 4)}
+                  </Text>
+                  <Text style={styles.pricingValue}>
+                    ${(spot.priceUsd * 4).toFixed(2)} / Bs.{(spot.priceBs * 4).toLocaleString('es-VE')}
+                  </Text>
+                </View>
+              </>
+            )}
           </View>
+          <Text style={styles.refundNote}>
+            Puedes cancelar la reserva en cualquier momento. Si han pasado más de 5 minutos, no se reembolsa el saldo.
+          </Text>
         </View>
 
         {/* CTA */}
         <View style={styles.cta}>
           {activeSession?.spotId === spot.id ? (
             <View style={styles.activeSessionInfo}>
-              <Text style={styles.activeSessionText}>✅ Tienes una sesión activa aquí</Text>
+              <Text style={styles.activeSessionText}>✅ Tienes una reserva activa aquí</Text>
+              <AppButton
+                label="Ver reserva"
+                onPress={() => router.push('/(tabs)/parking')}
+                variant="outline"
+                style={{ marginTop: 12 }}
+              />
             </View>
           ) : (
             <AppButton
-              label={!spot.isOpen ? 'Cerrado' : `Parquear aquí · $${spot.pricePerHourUsd}/h`}
-              onPress={() => router.push('/(tabs)/parking')}
+              label={
+                !spot.isOpen
+                  ? 'Cerrado'
+                  : `Parquear aquí · ${formatSpotPrice(spot).usd}`
+              }
+              onPress={() =>
+                router.push({ pathname: '/(tabs)/parking', params: { spotId: spot.id } })
+              }
               variant="primary"
-              disabled={!spot.isOpen || spot.availableSpots === 0}
+              disabled={!spot.isOpen || spot.availableSpots === 0 || Boolean(activeSession)}
               icon="play"
             />
           )}
@@ -254,6 +291,11 @@ const styles = StyleSheet.create({
   },
   pricingLabel: { ...Typography.bodyMedium, color: Colors.textSecondary },
   pricingValue: { ...Typography.titleMedium, color: Colors.navy, fontWeight: '700' },
+  refundNote: {
+    ...Typography.bodySmall,
+    color: Colors.textSecondary,
+    marginTop: 10,
+  },
   cta: { marginHorizontal: 16, marginTop: 8 },
   activeSessionInfo: {
     backgroundColor: Colors.success + '20',
