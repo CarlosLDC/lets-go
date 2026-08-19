@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Colors } from '../../constants/colors';
 import { Typography } from '../../constants/typography';
 import { Transaction } from '../../data/mock';
@@ -20,34 +20,70 @@ const txIcons: Record<Transaction['type'], string> = {
   refund: '↩️',
 };
 
+const statusLabel: Record<Transaction['status'], string> = {
+  completed: 'Completado',
+  pending: 'Pendiente',
+  failed: 'Fallido',
+};
+
+const statusColor: Record<Transaction['status'], string> = {
+  completed: Colors.success,
+  pending: Colors.warning,
+  failed: Colors.error,
+};
+
 interface TransactionItemProps {
   tx: Transaction;
+  onPress?: () => void;
+  isLast?: boolean;
 }
 
-export const TransactionItem: React.FC<TransactionItemProps> = ({ tx }) => {
+export const TransactionItem: React.FC<TransactionItemProps> = ({
+  tx,
+  onPress,
+  isLast = false,
+}) => {
   const isIncome = tx.type === 'recharge' || tx.type === 'refund';
 
-  return (
-    <View style={styles.row}>
+  const content = (
+    <>
       <View style={styles.iconBox}>
         <Text style={styles.icon}>{txIcons[tx.type]}</Text>
       </View>
       <View style={styles.info}>
-        <Text style={styles.description}>{tx.description}</Text>
+        <Text style={styles.description} numberOfLines={1}>{tx.description}</Text>
         <Text style={styles.date}>{formatDate(tx.date)}</Text>
       </View>
       <View style={styles.amountBlock}>
         <Text style={[styles.amount, { color: isIncome ? Colors.success : Colors.textPrimary }]}>
           {isIncome ? '+' : '-'}${tx.amount.toFixed(2)}
         </Text>
-        {tx.amountBs && (
+        {tx.status !== 'completed' ? (
+          <Text style={[styles.status, { color: statusColor[tx.status] }]}>
+            {statusLabel[tx.status]}
+          </Text>
+        ) : tx.amountBs ? (
           <Text style={styles.amountBs}>
             {isIncome ? '+' : '-'}Bs.{tx.amountBs.toLocaleString('es-VE')}
           </Text>
-        )}
+        ) : null}
       </View>
-    </View>
+    </>
   );
+
+  if (onPress) {
+    return (
+      <TouchableOpacity
+        onPress={onPress}
+        activeOpacity={0.7}
+        style={[styles.row, isLast && styles.rowLast]}
+      >
+        {content}
+      </TouchableOpacity>
+    );
+  }
+
+  return <View style={[styles.row, isLast && styles.rowLast]}>{content}</View>;
 };
 
 const styles = StyleSheet.create({
@@ -58,6 +94,14 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: Colors.borderLight,
     gap: 12,
+  },
+  rowLast: {
+    borderBottomWidth: 0,
+  },
+  status: {
+    ...Typography.caption,
+    fontWeight: '700',
+    marginTop: 2,
   },
   iconBox: {
     width: 40,

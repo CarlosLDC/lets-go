@@ -59,14 +59,21 @@ export default function WalletScreen() {
         {/* Transactions */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Historial</Text>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push('/history')}>
             <Text style={styles.seeAll}>Ver todo</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.txList}>
-          {transactions.slice(0, 5).map((tx) => (
-            <TransactionItem key={tx.id} tx={tx} />
+          {transactions.slice(0, 5).map((tx, index, list) => (
+            <TransactionItem
+              key={tx.id}
+              tx={tx}
+              isLast={index === list.length - 1}
+              onPress={() =>
+                router.push({ pathname: '/history/[id]', params: { id: tx.id } })
+              }
+            />
           ))}
         </View>
 
