@@ -23,19 +23,15 @@ export function formatSpotPrice(spot: ParkingSpot): { usd: string; bs: string; s
     return {
       usd: `$${spot.priceUsd.toFixed(2)}`,
       bs: `Bs.${spot.priceBs.toLocaleString('es-VE')}`,
-      short: 'Pago único',
+      short: 'USD',
     };
   }
   const unit = formatIntervalLabel(spot.intervalMinutes ?? 60);
   return {
     usd: `$${spot.priceUsd.toFixed(2)}/${unit}`,
     bs: `Bs.${spot.priceBs.toLocaleString('es-VE')}/${unit}`,
-    short: `Cada ${unit}`,
+    short: 'USD',
   };
-}
-
-export function billingTypeLabel(spot: ParkingSpot): string {
-  return spot.billingType === 'one_time' ? 'Pago único' : 'Por tiempo';
 }
 
 export function formatClock(seconds: number): string {

@@ -4,7 +4,7 @@ import { Colors } from '../../constants/colors';
 import { Typography } from '../../constants/typography';
 import { Spacing } from '../../constants/spacing';
 import { ParkingSpot } from '../../data/mock';
-import { billingTypeLabel, formatSpotPrice } from '../../utils/parking';
+import { formatSpotPrice } from '../../utils/parking';
 
 interface ParkingSpotCardProps {
   spot: ParkingSpot;
@@ -46,7 +46,6 @@ export const ParkingSpotCard: React.FC<ParkingSpotCardProps> = ({ spot, onPress,
           )}
         </View>
         <Text style={styles.address} numberOfLines={1}>{spot.address}</Text>
-        <Text style={styles.billing}>{billingTypeLabel(spot)}</Text>
       </View>
 
       <View style={styles.bottom}>
@@ -119,12 +118,6 @@ const styles = StyleSheet.create({
   address: {
     ...Typography.bodySmall,
     color: Colors.textSecondary,
-  },
-  billing: {
-    ...Typography.caption,
-    color: Colors.mintDark,
-    fontWeight: '700',
-    marginTop: 4,
   },
   badge: {
     flexDirection: 'row',

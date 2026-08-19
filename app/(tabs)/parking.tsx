@@ -18,7 +18,6 @@ import { useAppStore } from '../../store/useAppStore';
 import { MOCK_PARKING_SPOTS } from '../../data/mock';
 import {
   REFUND_WINDOW_MS,
-  billingTypeLabel,
   formatClock,
   formatIntervalDuration,
   formatIntervalLabel,
@@ -32,6 +31,7 @@ export default function ParkingScreen() {
   const {
     activeSession,
     balanceUsd,
+    vehicles,
     defaultVehicle,
     startParking,
     extendParking,
@@ -45,7 +45,21 @@ export default function ParkingScreen() {
   const [selectedSpot, setSelectedSpot] = useState(initialSpot);
   const [intervals, setIntervals] = useState(1);
   const [extendCount, setExtendCount] = useState(1);
+  const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(
+    defaultVehicle?.id ?? null
+  );
   const [now, setNow] = useState(Date.now());
+
+  useEffect(() => {
+    if (!defaultVehicle) {
+      setSelectedVehicleId(null);
+      return;
+    }
+    setSelectedVehicleId((current) => {
+      if (current && vehicles.some((v) => v.id === current)) return current;
+      return defaultVehicle.id;
+    });
+  }, [defaultVehicle, vehicles]);
 
   useEffect(() => {
     if (!spotId) return;
@@ -82,8 +96,10 @@ export default function ParkingScreen() {
     ? activeSession.pricePerIntervalUsd * extendCount
     : 0;
 
+  const selectedVehicle = vehicles.find((v) => v.id === selectedVehicleId);
+
   const handleStart = () => {
-    if (!defaultVehicle) {
+    if (!selectedVehicleId || !selectedVehicle) {
       Alert.alert(
         'Sin vehículo',
         'Debes registrar al menos un vehículo en tu perfil antes de iniciar un parqueo.',
@@ -95,22 +111,56 @@ export default function ParkingScreen() {
       return;
     }
 
-    const result = startParking(
-      selectedSpot,
-      selectedSpot.billingType === 'time_range' ? intervals : 1
+    const timeDetail =
+      selectedSpot.billingType === 'time_range'
+        ? `\nTiempo: ${formatIntervalDuration(selectedSpot.intervalMinutes ?? 60, intervals)}`
+        : '';
+
+    Alert.alert(
+      'Confirmar pago',
+      `${selectedSpot.name}\nVehículo: ${selectedVehicle.plate}\nTotal: $${startCost.toFixed(2)}${timeDetail}`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Pagar',
+          onPress: () => {
+            const result = startParking(
+              selectedSpot,
+              selectedSpot.billingType === 'time_range' ? intervals : 1,
+              selectedVehicleId
+            );
+            if (!result.ok) {
+              Alert.alert('No se pudo iniciar', result.message);
+              return;
+            }
+            Alert.alert('Listo', result.message);
+          },
+        },
+      ]
     );
-    if (!result.ok) {
-      Alert.alert('No se pudo iniciar', result.message);
-    }
   };
 
   const handleExtend = () => {
-    const result = extendParking(extendCount);
-    if (!result.ok) {
-      Alert.alert('No se pudo extender', result.message);
-      return;
-    }
-    Alert.alert('Tiempo agregado', result.message);
+    if (!activeSession) return;
+
+    Alert.alert(
+      'Confirmar pago',
+      `Agregar ${formatIntervalDuration(activeSession.intervalMinutes ?? 60, extendCount)} en ${activeSession.spotName}\nTotal: $${extendCost.toFixed(2)}`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Pagar',
+          onPress: () => {
+            const result = extendParking(extendCount);
+            if (!result.ok) {
+              Alert.alert('No se pudo extender', result.message);
+              return;
+            }
+            Alert.alert('Tiempo agregado', result.message);
+          },
+        },
+      ]
+    );
   };
 
   const handleCancel = () => {
@@ -153,11 +203,12 @@ export default function ParkingScreen() {
 
             <Text style={styles.spotName}>{activeSession.spotName}</Text>
             <Text style={styles.plate}>{activeSession.vehiclePlate}</Text>
-            <Text style={styles.billingHint}>
-              {activeSession.billingType === 'one_time'
-                ? 'Pago único'
-                : `Por tiempo · cada ${formatIntervalLabel(activeSession.intervalMinutes ?? 60)}`}
-            </Text>
+            {activeSession.billingType === 'time_range' && (
+              <Text style={styles.billingHint}>
+                ${activeSession.pricePerIntervalUsd?.toFixed(2)} cada{' '}
+                {formatIntervalLabel(activeSession.intervalMinutes ?? 60)}
+              </Text>
+            )}
 
             <View style={styles.timerBlock}>
               {activeSession.billingType === 'time_range' ? (
@@ -231,7 +282,7 @@ export default function ParkingScreen() {
               <Text style={styles.noSessionEmoji}>🅿️</Text>
               <Text style={styles.noSessionTitle}>Sin reserva activa</Text>
               <Text style={styles.noSessionSub}>
-                Pago único o por tiempo, según el estacionamiento
+                Selecciona un estacionamiento para iniciar
               </Text>
             </View>
 
@@ -251,9 +302,7 @@ export default function ParkingScreen() {
                   >
                     <View style={styles.spotOptionInfo}>
                       <Text style={styles.spotOptionName}>{spot.name}</Text>
-                      <Text style={styles.spotOptionAddr}>
-                        {billingTypeLabel(spot)} · {spot.address}
-                      </Text>
+                      <Text style={styles.spotOptionAddr}>{spot.address}</Text>
                     </View>
                     <Text style={styles.spotOptionPrice}>{price.usd}</Text>
                   </TouchableOpacity>
@@ -287,23 +336,44 @@ export default function ParkingScreen() {
               </View>
             )}
 
-            {selectedSpot.billingType === 'one_time' && (
-              <View style={styles.planCard}>
-                <Text style={styles.selectorTitle}>Pago único</Text>
-                <Text style={styles.planHint}>
-                  Pagas ${selectedSpot.priceUsd.toFixed(2)} una sola vez. Puedes cancelar cuando quieras;
-                  si han pasado más de 5 minutos, no hay reembolso.
-                </Text>
-              </View>
-            )}
-
-            <View style={styles.vehicleInfo}>
-              <Text style={styles.vehicleLabel}>Vehículo seleccionado</Text>
-              <Text style={styles.vehiclePlate}>
-                {defaultVehicle
-                  ? `🚗 ${defaultVehicle.plate} — ${defaultVehicle.brand} ${defaultVehicle.model}`
-                  : '⚠️ Ningún vehículo registrado'}
-              </Text>
+            <View style={styles.vehicleSelector}>
+              <Text style={styles.selectorTitle}>Vehículo</Text>
+              {vehicles.length === 0 ? (
+                <TouchableOpacity
+                  style={styles.emptyVehicle}
+                  onPress={() => router.push('/(tabs)/profile')}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.emptyVehicleText}>⚠️ Agrega un vehículo en tu perfil</Text>
+                </TouchableOpacity>
+              ) : (
+                vehicles.map((vehicle) => {
+                  const selected = selectedVehicleId === vehicle.id;
+                  return (
+                    <TouchableOpacity
+                      key={vehicle.id}
+                      style={[styles.vehicleOption, selected && styles.vehicleOptionSelected]}
+                      onPress={() => setSelectedVehicleId(vehicle.id)}
+                      activeOpacity={0.8}
+                    >
+                      <View style={styles.vehicleOptionInfo}>
+                        <View style={styles.vehicleNameRow}>
+                          <Text style={styles.vehicleOptionName}>
+                            {vehicle.brand} {vehicle.model}
+                          </Text>
+                          {vehicle.isDefault && (
+                            <View style={styles.defaultBadge}>
+                              <Text style={styles.defaultBadgeText}>Principal</Text>
+                            </View>
+                          )}
+                        </View>
+                        <Text style={styles.vehicleOptionPlate}>{vehicle.plate}</Text>
+                      </View>
+                      {selected && <Text style={styles.vehicleCheck}>✓</Text>}
+                    </TouchableOpacity>
+                  );
+                })
+              )}
             </View>
 
             <View style={styles.startBlock}>
@@ -312,7 +382,7 @@ export default function ParkingScreen() {
                 onPress={handleStart}
                 variant="primary"
                 icon="play"
-                disabled={balanceUsd < startCost}
+                disabled={balanceUsd < startCost || !selectedVehicleId}
               />
             </View>
           </View>
@@ -501,14 +571,73 @@ const styles = StyleSheet.create({
     color: Colors.mintDark,
     fontWeight: '700',
   },
-  vehicleInfo: {
+  vehicleSelector: {
     marginHorizontal: 16,
     marginTop: 16,
+    gap: 10,
+  },
+  vehicleOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: Colors.white,
+    borderRadius: 16,
+    padding: 14,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  vehicleOptionSelected: {
+    borderColor: Colors.mint,
+    backgroundColor: Colors.mintSurface,
+  },
+  vehicleOptionInfo: { flex: 1 },
+  vehicleNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flexWrap: 'wrap',
+  },
+  vehicleOptionName: {
+    ...Typography.titleMedium,
+    color: Colors.textPrimary,
+    fontWeight: '600',
+  },
+  defaultBadge: {
+    backgroundColor: Colors.navy + '15',
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  defaultBadgeText: {
+    ...Typography.caption,
+    color: Colors.navy,
+    fontWeight: '700',
+  },
+  vehicleOptionPlate: {
+    ...Typography.bodySmall,
+    color: Colors.textSecondary,
+    marginTop: 2,
+  },
+  vehicleCheck: {
+    ...Typography.titleLarge,
+    color: Colors.mintDark,
+    fontWeight: '700',
+    marginLeft: 8,
+  },
+  emptyVehicle: {
     backgroundColor: Colors.surfaceVariant,
     borderRadius: 14,
     padding: 14,
+    alignItems: 'center',
   },
-  vehicleLabel: { ...Typography.caption, color: Colors.textSecondary, marginBottom: 4 },
-  vehiclePlate: { ...Typography.titleMedium, color: Colors.textPrimary, fontWeight: '600' },
+  emptyVehicleText: {
+    ...Typography.bodyMedium,
+    color: Colors.textSecondary,
+  },
   startBlock: { marginHorizontal: 16, marginTop: 20 },
 });

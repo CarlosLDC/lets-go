@@ -44,7 +44,7 @@ interface AppState {
   login: (phone: string, cedula: string) => void;
   logout: () => void;
   addBalance: (amountUsd: number) => void;
-  startParking: (spot: ParkingSpot, intervals?: number) => ParkingActionResult;
+  startParking: (spot: ParkingSpot, intervals?: number, vehicleId?: string) => ParkingActionResult;
   extendParking: (intervals: number) => ParkingActionResult;
   cancelParking: () => ParkingActionResult;
   addTransaction: (tx: Omit<Transaction, 'id'>) => void;
@@ -84,13 +84,17 @@ export const useAppStore = create<AppState>((set, get) => ({
     }));
   },
 
-  startParking: (spot, intervals = 1) => {
-    const { activeSession, defaultVehicle, balanceUsd, exchangeRate, addBalance, addTransaction } = get();
+  startParking: (spot, intervals = 1, vehicleId) => {
+    const { activeSession, vehicles, defaultVehicle, balanceUsd, exchangeRate, addBalance, addTransaction } = get();
 
     if (activeSession) {
       return { ok: false, message: 'Ya tienes un parqueo activo. Cancélalo antes de iniciar otro.' };
     }
-    if (!defaultVehicle) {
+
+    const vehicle =
+      (vehicleId ? vehicles.find((v) => v.id === vehicleId) : null) ?? defaultVehicle;
+
+    if (!vehicle) {
       return { ok: false, message: 'Debes registrar al menos un vehículo en tu perfil antes de iniciar un parqueo.' };
     }
     if (!spot.isOpen) {
@@ -113,7 +117,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       spotId: spot.id,
       spotName: spot.name,
       startTime: now,
-      vehiclePlate: defaultVehicle.plate,
+      vehiclePlate: vehicle.plate,
       billingType: spot.billingType,
       amountPaidUsd: amountUsd,
       ...(spot.billingType === 'time_range'

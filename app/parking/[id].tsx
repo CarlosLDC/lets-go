@@ -14,7 +14,7 @@ import { Typography } from '../../constants/typography';
 import { AppButton } from '../../components/ui/AppButton';
 import { MOCK_PARKING_SPOTS } from '../../data/mock';
 import { useAppStore } from '../../store/useAppStore';
-import { billingTypeLabel, formatIntervalDuration, formatSpotPrice } from '../../utils/parking';
+import { formatIntervalDuration, formatSpotPrice } from '../../utils/parking';
 
 export default function ParkingDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -116,10 +116,6 @@ export default function ParkingDetailScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Tarifas</Text>
           <View style={styles.pricingCard}>
-            <View style={styles.pricingRow}>
-              <Text style={styles.pricingLabel}>Tipo de cobro</Text>
-              <Text style={styles.pricingValue}>{billingTypeLabel(spot)}</Text>
-            </View>
             {spot.billingType === 'one_time' ? (
               <View style={[styles.pricingRow, { borderBottomWidth: 0 }]}>
                 <Text style={styles.pricingLabel}>Entrada</Text>
