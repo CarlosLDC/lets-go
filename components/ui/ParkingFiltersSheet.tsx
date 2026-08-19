@@ -1,13 +1,13 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
-  BottomSheetBackdrop,
-  BottomSheetFooter,
-  BottomSheetModal,
-  BottomSheetScrollView,
-  type BottomSheetBackdropProps,
-  type BottomSheetFooterProps,
-} from '@gorhom/bottom-sheet';
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Modal,
+  ScrollView,
+  Pressable,
+} from 'react-native';
 import { Colors } from '../../constants/colors';
 import { Typography } from '../../constants/typography';
 import { Spacing } from '../../constants/spacing';
@@ -50,7 +50,7 @@ interface ParkingFiltersSheetProps {
   onApply: (filters: ParkingFilters) => void;
 }
 
-function OptionRow<T extends string>({
+function OptionRow({
   label,
   selected,
   onPress,
@@ -76,17 +76,10 @@ export function ParkingFiltersSheet({
   onClose,
   onApply,
 }: ParkingFiltersSheetProps) {
-  const sheetRef = useRef<BottomSheetModal>(null);
   const [draft, setDraft] = useState<ParkingFilters>(value);
-  const snapPoints = useMemo(() => ['88%'], []);
 
   useEffect(() => {
-    if (visible) {
-      setDraft(value);
-      sheetRef.current?.present();
-    } else {
-      sheetRef.current?.dismiss();
-    }
+    if (visible) setDraft(value);
   }, [visible, value]);
 
   const cityOptions: Option<string>[] = useMemo(
@@ -116,147 +109,155 @@ export function ParkingFiltersSheet({
     { value: 'lt3', label: 'Menos de 3 km' },
   ];
 
-  const renderBackdrop = useCallback(
-    (props: BottomSheetBackdropProps) => (
-      <BottomSheetBackdrop {...props} appearsOnIndex={0} disappearsOnIndex={-1} pressBehavior="close" />
-    ),
-    []
-  );
-
-  const draftRef = useRef(draft);
-  draftRef.current = draft;
-
-  const renderFooter = useCallback(
-    (props: BottomSheetFooterProps) => (
-      <BottomSheetFooter {...props} bottomInset={12}>
-        <View style={styles.footer}>
-          <AppButton
-            label="Limpiar"
-            onPress={() => setDraft(DEFAULT_PARKING_FILTERS)}
-            variant="outline"
-            fullWidth={false}
-            style={styles.footerBtn}
-          />
-          <AppButton
-            label="Aplicar"
-            onPress={() => onApply(draftRef.current)}
-            variant="primary"
-            fullWidth={false}
-            style={styles.footerBtnPrimary}
-          />
-        </View>
-      </BottomSheetFooter>
-    ),
-    [onApply]
-  );
-
   return (
-    <BottomSheetModal
-      ref={sheetRef}
-      snapPoints={snapPoints}
-      enablePanDownToClose
-      onDismiss={onClose}
-      backdropComponent={renderBackdrop}
-      footerComponent={renderFooter}
-      handleIndicatorStyle={styles.handle}
-      backgroundStyle={styles.sheet}
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent
+      onRequestClose={onClose}
     >
-      <BottomSheetScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.title}>Filtros</Text>
-        <Text style={styles.subtitle}>Ajusta los resultados de estacionamientos disponibles</Text>
+      <View style={styles.overlay}>
+        <Pressable style={styles.overlayDismiss} onPress={onClose} />
+        <View style={styles.sheet}>
+          <View style={styles.handle} />
+          <Text style={styles.title}>Filtros</Text>
+          <Text style={styles.subtitle}>Ajusta los resultados de estacionamientos disponibles</Text>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Ciudad</Text>
-          {cityOptions.map((option) => (
-            <OptionRow
-              key={option.value}
-              label={option.label}
-              selected={draft.city === option.value}
-              onPress={() => setDraft((prev) => ({ ...prev, city: option.value }))}
-            />
-          ))}
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Disponibilidad</Text>
-          <TouchableOpacity
-            style={styles.optionRow}
-            onPress={() => setDraft((prev) => ({ ...prev, openNow: !prev.openNow }))}
-            activeOpacity={0.75}
+          <ScrollView
+            style={styles.scroll}
+            contentContainerStyle={styles.content}
+            showsVerticalScrollIndicator={false}
           >
-            <View>
-              <Text style={styles.optionLabel}>Solo abiertos ahora</Text>
-              <Text style={styles.optionHint}>Oculta los que están cerrados</Text>
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Ciudad</Text>
+              {cityOptions.map((option) => (
+                <OptionRow
+                  key={option.value}
+                  label={option.label}
+                  selected={draft.city === option.value}
+                  onPress={() => setDraft((prev) => ({ ...prev, city: option.value }))}
+                />
+              ))}
             </View>
-            <View style={[styles.toggle, draft.openNow && styles.toggleOn]}>
-              <View style={[styles.toggleThumb, draft.openNow && styles.toggleThumbOn]} />
+
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Disponibilidad</Text>
+              <TouchableOpacity
+                style={styles.optionRow}
+                onPress={() => setDraft((prev) => ({ ...prev, openNow: !prev.openNow }))}
+                activeOpacity={0.75}
+              >
+                <View>
+                  <Text style={styles.optionLabel}>Solo abiertos ahora</Text>
+                  <Text style={styles.optionHint}>Oculta los que están cerrados</Text>
+                </View>
+                <View style={[styles.toggle, draft.openNow && styles.toggleOn]}>
+                  <View style={[styles.toggleThumb, draft.openNow && styles.toggleThumbOn]} />
+                </View>
+              </TouchableOpacity>
             </View>
-          </TouchableOpacity>
-        </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Tipo de cobro</Text>
-          {billingOptions.map((option) => (
-            <OptionRow
-              key={option.value}
-              label={option.label}
-              selected={draft.billing === option.value}
-              onPress={() => setDraft((prev) => ({ ...prev, billing: option.value }))}
-            />
-          ))}
-        </View>
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Tipo de cobro</Text>
+              {billingOptions.map((option) => (
+                <OptionRow
+                  key={option.value}
+                  label={option.label}
+                  selected={draft.billing === option.value}
+                  onPress={() => setDraft((prev) => ({ ...prev, billing: option.value }))}
+                />
+              ))}
+            </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Precio</Text>
-          {priceOptions.map((option) => (
-            <OptionRow
-              key={option.value}
-              label={option.label}
-              selected={draft.price === option.value}
-              onPress={() => setDraft((prev) => ({ ...prev, price: option.value }))}
-            />
-          ))}
-        </View>
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Precio</Text>
+              {priceOptions.map((option) => (
+                <OptionRow
+                  key={option.value}
+                  label={option.label}
+                  selected={draft.price === option.value}
+                  onPress={() => setDraft((prev) => ({ ...prev, price: option.value }))}
+                />
+              ))}
+            </View>
 
-        <View style={[styles.section, styles.sectionLast]}>
-          <Text style={styles.sectionTitle}>Distancia</Text>
-          {distanceOptions.map((option) => (
-            <OptionRow
-              key={option.value}
-              label={option.label}
-              selected={draft.distance === option.value}
-              onPress={() => setDraft((prev) => ({ ...prev, distance: option.value }))}
+            <View style={[styles.section, styles.sectionLast]}>
+              <Text style={styles.sectionTitle}>Distancia</Text>
+              {distanceOptions.map((option) => (
+                <OptionRow
+                  key={option.value}
+                  label={option.label}
+                  selected={draft.distance === option.value}
+                  onPress={() => setDraft((prev) => ({ ...prev, distance: option.value }))}
+                />
+              ))}
+            </View>
+          </ScrollView>
+
+          <View style={styles.footer}>
+            <AppButton
+              label="Limpiar"
+              onPress={() => setDraft(DEFAULT_PARKING_FILTERS)}
+              variant="outline"
+              fullWidth={false}
+              style={styles.footerBtn}
             />
-          ))}
+            <AppButton
+              label="Aplicar"
+              onPress={() => onApply(draft)}
+              variant="primary"
+              fullWidth={false}
+              style={styles.footerBtnPrimary}
+            />
+          </View>
         </View>
-      </BottomSheetScrollView>
-    </BottomSheetModal>
+      </View>
+    </Modal>
   );
 }
 
 const styles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: Colors.overlay,
+    justifyContent: 'flex-end',
+  },
+  overlayDismiss: {
+    flex: 1,
+  },
   sheet: {
     backgroundColor: Colors.offWhite,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    paddingTop: 10,
+    maxHeight: '88%',
   },
   handle: {
-    backgroundColor: Colors.border,
+    alignSelf: 'center',
     width: 40,
-  },
-  content: {
-    paddingHorizontal: Spacing.xl,
-    paddingBottom: 108,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: Colors.border,
+    marginBottom: 12,
   },
   title: {
     ...Typography.headlineLarge,
     color: Colors.textPrimary,
+    paddingHorizontal: Spacing.xl,
   },
   subtitle: {
     ...Typography.bodyMedium,
     color: Colors.textSecondary,
     marginTop: 4,
-    marginBottom: Spacing.sectionGap,
+    marginBottom: Spacing.md,
+    paddingHorizontal: Spacing.xl,
+  },
+  scroll: {
+    maxHeight: 460,
+  },
+  content: {
+    paddingHorizontal: Spacing.xl,
+    paddingBottom: 8,
   },
   section: {
     backgroundColor: Colors.white,
@@ -265,14 +266,9 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.md,
     paddingBottom: 4,
     marginBottom: Spacing.md,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
   },
   sectionLast: {
-    marginBottom: 8,
+    marginBottom: 4,
   },
   sectionTitle: {
     ...Typography.titleMedium,
@@ -344,10 +340,10 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingHorizontal: Spacing.xl,
     paddingTop: 12,
-    paddingBottom: 8,
-    backgroundColor: Colors.offWhite,
+    paddingBottom: 24,
     borderTopWidth: 1,
     borderTopColor: Colors.borderLight,
+    backgroundColor: Colors.offWhite,
   },
   footerBtn: {
     flex: 1,

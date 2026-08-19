@@ -32,7 +32,6 @@ import {
   matchesDistanceFilter,
   matchesPriceFilter,
 } from '../../utils/parking';
-import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 
 const EXTEND_OPTIONS = [1, 2, 4];
 const CITIES = ['all', ...Array.from(new Set(MOCK_PARKING_SPOTS.map((s) => s.city)))];
@@ -218,7 +217,6 @@ export default function ParkingScreen() {
   const activeFilterCount = countActiveFilters(filters);
 
   return (
-    <BottomSheetModalProvider>
     <SafeAreaView style={styles.safe}>
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         <Text style={styles.title}>Parqueo</Text>
@@ -451,7 +449,6 @@ export default function ParkingScreen() {
         }}
       />
       </SafeAreaView>
-    </BottomSheetModalProvider>
   );
 }
 
