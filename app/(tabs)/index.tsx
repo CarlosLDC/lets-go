@@ -79,16 +79,6 @@ export default function HomeScreen() {
               onChangeText={setSearch}
             />
           </View>
-          <TouchableOpacity activeOpacity={0.8} style={{ borderRadius: 14, overflow: 'hidden' }}>
-            <LinearGradient
-              colors={Gradients.darkElement}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.filterBtn}
-            >
-              <Text style={styles.filterEmoji}>⚙️</Text>
-            </LinearGradient>
-          </TouchableOpacity>
         </View>
 
         {/* Nearby section */}
@@ -184,8 +174,6 @@ const styles = StyleSheet.create({
     padding: 6,
   },
   searchRow: {
-    flexDirection: 'row',
-    gap: 10,
     marginHorizontal: 16,
     marginTop: 20,
     marginBottom: 4,
@@ -211,13 +199,6 @@ const styles = StyleSheet.create({
     ...Typography.bodyLarge,
     color: Colors.textPrimary,
   },
-  filterBtn: {
-    width: 50,
-    height: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  filterEmoji: { fontSize: 20 },
   section: {
     flexDirection: 'row',
     justifyContent: 'space-between',
