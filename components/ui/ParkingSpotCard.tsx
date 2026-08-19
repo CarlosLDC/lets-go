@@ -4,7 +4,7 @@ import { Colors } from '../../constants/colors';
 import { Typography } from '../../constants/typography';
 import { Spacing } from '../../constants/spacing';
 import { ParkingSpot } from '../../data/mock';
-import { formatSpotPrice } from '../../utils/parking';
+import { formatSpotPrice, billingTypeLabel } from '../../utils/parking';
 
 interface ParkingSpotCardProps {
   spot: ParkingSpot;

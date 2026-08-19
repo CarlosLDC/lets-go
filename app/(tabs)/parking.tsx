@@ -16,19 +16,23 @@ import { Typography } from '../../constants/typography';
 import { Spacing } from '../../constants/spacing';
 import { AppButton } from '../../components/ui/AppButton';
 import { ParkingSpotCard } from '../../components/ui/ParkingSpotCard';
+import {
+  DEFAULT_PARKING_FILTERS,
+  ParkingFiltersSheet,
+  countActiveFilters,
+  type ParkingFilters,
+} from '../../components/ui/ParkingFiltersSheet';
 import { useAppStore, ActiveSession } from '../../store/useAppStore';
 import { MOCK_PARKING_SPOTS, ParkingSpot } from '../../data/mock';
 import {
   REFUND_WINDOW_MS,
-  BillingFilter,
-  DistanceFilter,
-  PriceFilter,
   formatClock,
   formatIntervalDuration,
   formatIntervalLabel,
   matchesDistanceFilter,
   matchesPriceFilter,
 } from '../../utils/parking';
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 
 const EXTEND_OPTIONS = [1, 2, 4];
 const CITIES = ['all', ...Array.from(new Set(MOCK_PARKING_SPOTS.map((s) => s.city)))];
@@ -49,11 +53,8 @@ export default function ParkingScreen() {
 
   const [tab, setTab] = useState<ParkingTab>('available');
   const [search, setSearch] = useState('');
-  const [city, setCity] = useState('all');
-  const [billing, setBilling] = useState<BillingFilter>('all');
-  const [openNow, setOpenNow] = useState(false);
-  const [priceFilter, setPriceFilter] = useState<PriceFilter>('all');
-  const [distanceFilter, setDistanceFilter] = useState<DistanceFilter>('all');
+  const [filters, setFilters] = useState<ParkingFilters>(DEFAULT_PARKING_FILTERS);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [selectedSpot, setSelectedSpot] = useState<ParkingSpot | null>(null);
   const [intervals, setIntervals] = useState(1);
   const [extendBySession, setExtendBySession] = useState<Record<string, number>>({});
@@ -105,14 +106,14 @@ export default function ParkingScreen() {
       if (q && !spot.name.toLowerCase().includes(q) && !spot.address.toLowerCase().includes(q)) {
         return false;
       }
-      if (city !== 'all' && spot.city !== city) return false;
-      if (billing !== 'all' && spot.billingType !== billing) return false;
-      if (openNow && !spot.isOpen) return false;
-      if (!matchesPriceFilter(spot, priceFilter)) return false;
-      if (!matchesDistanceFilter(spot, distanceFilter)) return false;
+      if (filters.city !== 'all' && spot.city !== filters.city) return false;
+      if (filters.billing !== 'all' && spot.billingType !== filters.billing) return false;
+      if (filters.openNow && !spot.isOpen) return false;
+      if (!matchesPriceFilter(spot, filters.price)) return false;
+      if (!matchesDistanceFilter(spot, filters.distance)) return false;
       return true;
     });
-  }, [search, city, billing, openNow, priceFilter, distanceFilter]);
+  }, [search, filters]);
 
   const startCost = selectedSpot
     ? selectedSpot.billingType === 'one_time'
@@ -214,22 +215,10 @@ export default function ParkingScreen() {
     ]);
   };
 
-  const renderFilterChip = (
-    label: string,
-    selected: boolean,
-    onPress: () => void
-  ) => (
-    <TouchableOpacity
-      key={label}
-      onPress={onPress}
-      activeOpacity={0.8}
-      style={[styles.chip, selected && styles.chipSelected]}
-    >
-      <Text style={[styles.chipLabel, selected && styles.chipLabelSelected]}>{label}</Text>
-    </TouchableOpacity>
-  );
+  const activeFilterCount = countActiveFilters(filters);
 
   return (
+    <BottomSheetModalProvider>
     <SafeAreaView style={styles.safe}>
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         <Text style={styles.title}>Parqueo</Text>
@@ -266,29 +255,19 @@ export default function ParkingScreen() {
                   onChangeText={setSearch}
                 />
               </View>
+              <TouchableOpacity
+                style={[styles.filterBtn, activeFilterCount > 0 && styles.filterBtnActive]}
+                onPress={() => setFiltersOpen(true)}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.filterBtnIcon}>⚙</Text>
+                {activeFilterCount > 0 && (
+                  <View style={styles.filterBadge}>
+                    <Text style={styles.filterBadgeText}>{activeFilterCount}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
             </View>
-
-            <ScrollView
-              horizontal
-              nestedScrollEnabled
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.filters}
-            >
-              {CITIES.map((item) =>
-                renderFilterChip(item === 'all' ? 'Todas las ciudades' : item, city === item, () => setCity(item))
-              )}
-              {renderFilterChip('Todos los cobros', billing === 'all', () => setBilling('all'))}
-              {renderFilterChip('Tarifa fija', billing === 'one_time', () => setBilling('one_time'))}
-              {renderFilterChip('Por intervalo', billing === 'time_range', () => setBilling('time_range'))}
-              {renderFilterChip('Abierto ahora', openNow, () => setOpenNow((v) => !v))}
-              {renderFilterChip('Cualquier precio', priceFilter === 'all', () => setPriceFilter('all'))}
-              {renderFilterChip('Hasta $0.50', priceFilter === 'lt050', () => setPriceFilter('lt050'))}
-              {renderFilterChip('$0.50–$1.50', priceFilter === '050_150', () => setPriceFilter('050_150'))}
-              {renderFilterChip('Más de $1.50', priceFilter === 'gt150', () => setPriceFilter('gt150'))}
-              {renderFilterChip('Cualquier distancia', distanceFilter === 'all', () => setDistanceFilter('all'))}
-              {renderFilterChip('< 1 km', distanceFilter === 'lt1', () => setDistanceFilter('lt1'))}
-              {renderFilterChip('< 3 km', distanceFilter === 'lt3', () => setDistanceFilter('lt3'))}
-            </ScrollView>
 
             <View style={styles.listHeader}>
               <Text style={styles.listCount}>
@@ -461,7 +440,18 @@ export default function ParkingScreen() {
 
         <View style={{ height: 32 }} />
       </ScrollView>
-    </SafeAreaView>
+      <ParkingFiltersSheet
+        visible={filtersOpen}
+        cities={CITIES}
+        value={filters}
+        onClose={() => setFiltersOpen(false)}
+        onApply={(next) => {
+          setFilters(next);
+          setFiltersOpen(false);
+        }}
+      />
+      </SafeAreaView>
+    </BottomSheetModalProvider>
   );
 }
 
@@ -606,6 +596,9 @@ const styles = StyleSheet.create({
   tabLabel: { ...Typography.labelLarge, color: Colors.textSecondary },
   tabLabelSelected: { color: Colors.navy, fontWeight: '700' },
   searchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
     marginHorizontal: 16,
     marginTop: 12,
     marginBottom: 4,
@@ -631,31 +624,43 @@ const styles = StyleSheet.create({
     ...Typography.bodyLarge,
     color: Colors.textPrimary,
   },
-  filters: {
-    paddingHorizontal: Spacing.screenPadding,
-    paddingTop: Spacing.md,
-    paddingBottom: Spacing.sm,
-    gap: Spacing.sm,
-  },
-  chip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
+  filterBtn: {
+    width: 50,
+    height: 50,
+    borderRadius: 14,
     backgroundColor: Colors.white,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
   },
-  chipSelected: {
+  filterBtnActive: {
     backgroundColor: Colors.mintSurface,
-    borderColor: Colors.mint,
   },
-  chipLabel: {
-    ...Typography.labelLarge,
-    color: Colors.textSecondary,
+  filterBtnIcon: {
+    fontSize: 20,
+    color: Colors.navy,
   },
-  chipLabelSelected: {
-    color: Colors.mintDark,
+  filterBadge: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: Colors.mint,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+  },
+  filterBadgeText: {
+    ...Typography.caption,
+    color: Colors.navy,
     fontWeight: '700',
+    fontSize: 10,
   },
   listHeader: {
     paddingHorizontal: 20,
