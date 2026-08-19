@@ -242,169 +242,176 @@ export default function ParkingScreen() {
 
         {tab === 'available' ? (
           <View>
-            <View style={styles.searchRow}>
-              <View style={styles.searchBox}>
-                <Text style={styles.searchIcon}>🔍</Text>
-                <TextInput
-                  style={styles.searchInput}
-                  placeholder="Buscar estacionamiento..."
-                  placeholderTextColor={Colors.textDisabled}
-                  value={search}
-                  onChangeText={setSearch}
+            {selectedSpot ? (
+              <View>
+                <TouchableOpacity
+                  style={styles.backToList}
+                  onPress={() => setSelectedSpot(null)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.backToListText}>← Cambiar estacionamiento</Text>
+                </TouchableOpacity>
+
+                <ParkingSpotCard
+                  spot={selectedSpot}
+                  onPress={() => setSelectedSpot(null)}
                 />
-              </View>
-              <TouchableOpacity
-                style={[styles.filterBtn, activeFilterCount > 0 && styles.filterBtnActive]}
-                onPress={() => setFiltersOpen(true)}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.filterBtnIcon}>⚙</Text>
-                {activeFilterCount > 0 && (
-                  <View style={styles.filterBadge}>
-                    <Text style={styles.filterBadgeText}>{activeFilterCount}</Text>
+
+                <View style={styles.checkout}>
+                  {selectedSpot.billingType === 'time_range' && (
+                    <View style={styles.planCard}>
+                      <Text style={styles.selectorTitle}>¿Cuánto tiempo reservas?</Text>
+                      <View style={styles.intervalRow}>
+                        {EXTEND_OPTIONS.map((count) => {
+                          const selected = intervals === count;
+                          return (
+                            <TouchableOpacity
+                              key={count}
+                              onPress={() => setIntervals(count)}
+                              style={[styles.intervalChip, selected && styles.intervalChipSelected]}
+                            >
+                              <Text style={[styles.intervalChipText, selected && styles.intervalChipTextSelected]}>
+                                {formatIntervalDuration(selectedSpot.intervalMinutes ?? 60, count)}
+                              </Text>
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </View>
+                      <Text style={styles.planHint}>
+                        ${selectedSpot.priceUsd.toFixed(2)} cada {formatIntervalLabel(selectedSpot.intervalMinutes ?? 60)}.
+                        Puedes pagar más tiempo después.
+                      </Text>
+                    </View>
+                  )}
+
+                  <View style={styles.vehicleSelector}>
+                    <Text style={styles.selectorTitle}>Vehículo</Text>
+                    {vehicles.length === 0 ? (
+                      <TouchableOpacity
+                        style={styles.emptyVehicle}
+                        onPress={() => router.push('/(tabs)/profile')}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={styles.emptyVehicleText}>⚠️ Agrega un vehículo en tu perfil</Text>
+                      </TouchableOpacity>
+                    ) : (
+                      vehicles.map((vehicle) => {
+                        const busy = busyVehicleIds.has(vehicle.id);
+                        const selected = selectedVehicleId === vehicle.id && !busy;
+                        return (
+                          <TouchableOpacity
+                            key={vehicle.id}
+                            style={[
+                              styles.vehicleOption,
+                              selected && styles.vehicleOptionSelected,
+                              busy && styles.vehicleOptionBusy,
+                            ]}
+                            onPress={() => {
+                              if (busy) return;
+                              setSelectedVehicleId(vehicle.id);
+                            }}
+                            activeOpacity={busy ? 1 : 0.8}
+                            disabled={busy}
+                          >
+                            <View style={styles.vehicleOptionInfo}>
+                              <View style={styles.vehicleNameRow}>
+                                <Text style={[styles.vehicleOptionName, busy && styles.vehicleBusyText]}>
+                                  {vehicle.brand} {vehicle.model}
+                                </Text>
+                                {vehicle.isDefault && (
+                                  <View style={styles.defaultBadge}>
+                                    <Text style={styles.defaultBadgeText}>Principal</Text>
+                                  </View>
+                                )}
+                                {busy && (
+                                  <View style={styles.busyBadge}>
+                                    <Text style={styles.busyBadgeText}>En uso</Text>
+                                  </View>
+                                )}
+                              </View>
+                              <Text style={[styles.vehicleOptionPlate, busy && styles.vehicleBusyText]}>
+                                {vehicle.plate}
+                              </Text>
+                            </View>
+                            {selected && <Text style={styles.vehicleCheck}>✓</Text>}
+                          </TouchableOpacity>
+                        );
+                      })
+                    )}
+                    {allVehiclesBusy && (
+                      <Text style={styles.planHint}>
+                        Todos tus vehículos están en un estacionamiento. Cancela o espera a que termine el tiempo.
+                      </Text>
+                    )}
                   </View>
-                )}
-              </TouchableOpacity>
-            </View>
 
-            <View style={styles.listHeader}>
-              <Text style={styles.listCount}>
-                {filteredSpots.length} resultado{filteredSpots.length !== 1 ? 's' : ''}
-              </Text>
-            </View>
-
-            {filteredSpots.length === 0 ? (
-              <View style={styles.empty}>
-                <Text style={styles.emptyTitle}>Sin resultados</Text>
-                <Text style={styles.emptySub}>Prueba con otra búsqueda o quita filtros.</Text>
+                  <View style={styles.startBlock}>
+                    <AppButton
+                      label={`Pagar $${startCost.toFixed(2)} e iniciar`}
+                      onPress={handleStart}
+                      variant="primary"
+                      icon="play"
+                      disabled={
+                        !selectedSpot.isOpen ||
+                        selectedSpot.availableSpots === 0 ||
+                        balanceUsd < startCost ||
+                        !selectedVehicleId ||
+                        allVehiclesBusy
+                      }
+                    />
+                  </View>
+                </View>
               </View>
             ) : (
-              filteredSpots.map((spot) => (
-                <ParkingSpotCard
-                  key={spot.id}
-                  spot={spot}
-                  onPress={() => {
-                    setSelectedSpot(spot);
-                    setIntervals(1);
-                  }}
-                />
-              ))
-            )}
-
-            {selectedSpot && (
-              <View style={styles.checkout}>
-                <View style={styles.checkoutHeader}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.selectorTitle}>Contratar</Text>
-                    <Text style={styles.checkoutSpot}>{selectedSpot.name}</Text>
+              <View>
+                <View style={styles.searchRow}>
+                  <View style={styles.searchBox}>
+                    <Text style={styles.searchIcon}>🔍</Text>
+                    <TextInput
+                      style={styles.searchInput}
+                      placeholder="Buscar estacionamiento..."
+                      placeholderTextColor={Colors.textDisabled}
+                      value={search}
+                      onChangeText={setSearch}
+                    />
                   </View>
-                  <TouchableOpacity onPress={() => setSelectedSpot(null)}>
-                    <Text style={styles.checkoutClose}>Cerrar</Text>
+                  <TouchableOpacity
+                    style={[styles.filterBtn, activeFilterCount > 0 && styles.filterBtnActive]}
+                    onPress={() => setFiltersOpen(true)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.filterBtnIcon}>⚙</Text>
+                    {activeFilterCount > 0 && (
+                      <View style={styles.filterBadge}>
+                        <Text style={styles.filterBadgeText}>{activeFilterCount}</Text>
+                      </View>
+                    )}
                   </TouchableOpacity>
                 </View>
 
-                {selectedSpot.billingType === 'time_range' && (
-                  <View style={styles.planCard}>
-                    <Text style={styles.selectorTitle}>¿Cuánto tiempo reservas?</Text>
-                    <View style={styles.intervalRow}>
-                      {EXTEND_OPTIONS.map((count) => {
-                        const selected = intervals === count;
-                        return (
-                          <TouchableOpacity
-                            key={count}
-                            onPress={() => setIntervals(count)}
-                            style={[styles.intervalChip, selected && styles.intervalChipSelected]}
-                          >
-                            <Text style={[styles.intervalChipText, selected && styles.intervalChipTextSelected]}>
-                              {formatIntervalDuration(selectedSpot.intervalMinutes ?? 60, count)}
-                            </Text>
-                          </TouchableOpacity>
-                        );
-                      })}
-                    </View>
-                    <Text style={styles.planHint}>
-                      ${selectedSpot.priceUsd.toFixed(2)} cada {formatIntervalLabel(selectedSpot.intervalMinutes ?? 60)}.
-                      Puedes pagar más tiempo después.
-                    </Text>
+                <View style={styles.listHeader}>
+                  <Text style={styles.listCount}>
+                    {filteredSpots.length} resultado{filteredSpots.length !== 1 ? 's' : ''}
+                  </Text>
+                </View>
+
+                {filteredSpots.length === 0 ? (
+                  <View style={styles.empty}>
+                    <Text style={styles.emptyTitle}>Sin resultados</Text>
+                    <Text style={styles.emptySub}>Prueba con otra búsqueda o quita filtros.</Text>
                   </View>
+                ) : (
+                  filteredSpots.map((spot) => (
+                    <ParkingSpotCard
+                      key={spot.id}
+                      spot={spot}
+                      onPress={() => {
+                        setSelectedSpot(spot);
+                        setIntervals(1);
+                      }}
+                    />
+                  ))
                 )}
-
-                <View style={styles.vehicleSelector}>
-                  <Text style={styles.selectorTitle}>Vehículo</Text>
-                  {vehicles.length === 0 ? (
-                    <TouchableOpacity
-                      style={styles.emptyVehicle}
-                      onPress={() => router.push('/(tabs)/profile')}
-                      activeOpacity={0.8}
-                    >
-                      <Text style={styles.emptyVehicleText}>⚠️ Agrega un vehículo en tu perfil</Text>
-                    </TouchableOpacity>
-                  ) : (
-                    vehicles.map((vehicle) => {
-                      const busy = busyVehicleIds.has(vehicle.id);
-                      const selected = selectedVehicleId === vehicle.id && !busy;
-                      return (
-                        <TouchableOpacity
-                          key={vehicle.id}
-                          style={[
-                            styles.vehicleOption,
-                            selected && styles.vehicleOptionSelected,
-                            busy && styles.vehicleOptionBusy,
-                          ]}
-                          onPress={() => {
-                            if (busy) return;
-                            setSelectedVehicleId(vehicle.id);
-                          }}
-                          activeOpacity={busy ? 1 : 0.8}
-                          disabled={busy}
-                        >
-                          <View style={styles.vehicleOptionInfo}>
-                            <View style={styles.vehicleNameRow}>
-                              <Text style={[styles.vehicleOptionName, busy && styles.vehicleBusyText]}>
-                                {vehicle.brand} {vehicle.model}
-                              </Text>
-                              {vehicle.isDefault && (
-                                <View style={styles.defaultBadge}>
-                                  <Text style={styles.defaultBadgeText}>Principal</Text>
-                                </View>
-                              )}
-                              {busy && (
-                                <View style={styles.busyBadge}>
-                                  <Text style={styles.busyBadgeText}>En uso</Text>
-                                </View>
-                              )}
-                            </View>
-                            <Text style={[styles.vehicleOptionPlate, busy && styles.vehicleBusyText]}>
-                              {vehicle.plate}
-                            </Text>
-                          </View>
-                          {selected && <Text style={styles.vehicleCheck}>✓</Text>}
-                        </TouchableOpacity>
-                      );
-                    })
-                  )}
-                  {allVehiclesBusy && (
-                    <Text style={styles.planHint}>
-                      Todos tus vehículos están en un estacionamiento. Cancela o espera a que termine el tiempo.
-                    </Text>
-                  )}
-                </View>
-
-                <View style={styles.startBlock}>
-                  <AppButton
-                    label={`Pagar $${startCost.toFixed(2)} e iniciar`}
-                    onPress={handleStart}
-                    variant="primary"
-                    icon="play"
-                    disabled={
-                      !selectedSpot.isOpen ||
-                      selectedSpot.availableSpots === 0 ||
-                      balanceUsd < startCost ||
-                      !selectedVehicleId ||
-                      allVehiclesBusy
-                    }
-                  />
-                </View>
               </View>
             )}
           </View>
@@ -682,19 +689,19 @@ const styles = StyleSheet.create({
     marginTop: 8,
     paddingBottom: 8,
   },
-  checkoutHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+  backToList: {
     marginHorizontal: 16,
     marginTop: 8,
-    gap: 12,
+    marginBottom: 8,
+    alignSelf: 'flex-start',
+    paddingVertical: 8,
+    paddingHorizontal: 4,
   },
-  checkoutSpot: {
-    ...Typography.bodyMedium,
-    color: Colors.textSecondary,
-    marginTop: 2,
+  backToListText: {
+    ...Typography.labelLarge,
+    color: Colors.mint,
+    fontWeight: '700',
   },
-  checkoutClose: { ...Typography.labelLarge, color: Colors.mint },
   activeCard: {
     borderRadius: 28,
     margin: 16,
