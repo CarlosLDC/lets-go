@@ -122,7 +122,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       operatorId: null,
       operatorName: null,
       operatorIsActive: false,
-      activeSession: null,
+      activeSessions: [],
       vehicles: [],
       defaultVehicle: null,
       transactions: [],

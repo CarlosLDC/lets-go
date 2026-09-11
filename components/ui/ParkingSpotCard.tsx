@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, type ViewStyle } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, StyleProp, ViewStyle } from 'react-native';
 import { Colors } from '../../constants/colors';
 import { Typography } from '../../constants/typography';
 import { Spacing } from '../../constants/spacing';
@@ -11,7 +11,7 @@ interface ParkingSpotCardProps {
   onPress: () => void;
   compact?: boolean;
   footer?: React.ReactNode;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
 }
 
 const AvailabilityBadge: React.FC<{ available: number; total: number }> = ({ available, total }) => {
@@ -116,6 +116,7 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 8,
     marginRight: 12,
+    marginHorizontal: 0,
     width: 220,
   },
   top: { marginBottom: 10 },

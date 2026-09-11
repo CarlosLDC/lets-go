@@ -79,6 +79,9 @@ export default function HomeScreen() {
               onChangeText={setSearch}
             />
           </View>
+          <TouchableOpacity activeOpacity={0.7} style={styles.filterBtn}>
+            <Text style={styles.filterEmoji}>⚙️</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Nearby section */}
@@ -174,18 +177,21 @@ const styles = StyleSheet.create({
     padding: 6,
   },
   searchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
     marginHorizontal: 16,
     marginTop: 20,
     marginBottom: 4,
   },
   searchBox: {
     flex: 1,
+    height: 50,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.white,
     borderRadius: 14,
     paddingHorizontal: 14,
-    paddingVertical: 12,
     gap: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -196,9 +202,18 @@ const styles = StyleSheet.create({
   searchIcon: { fontSize: 16 },
   searchInput: {
     flex: 1,
+    height: '100%',
     ...Typography.bodyLarge,
     color: Colors.textPrimary,
+    paddingVertical: 0,
   },
+  filterBtn: {
+    width: 50,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  filterEmoji: { fontSize: 24 },
   section: {
     flexDirection: 'row',
     justifyContent: 'space-between',
