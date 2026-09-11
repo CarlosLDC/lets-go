@@ -6,8 +6,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Image,
-  TouchableOpacity,
+  Alert,
 } from 'react-native';
 import { TextInput } from 'react-native-paper';
 import { router } from 'expo-router';
@@ -16,22 +15,59 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Colors, Gradients } from '../../constants/colors';
 import { Typography } from '../../constants/typography';
 import { AppButton } from '../../components/ui/AppButton';
-import { useAppStore } from '../../store/useAppStore';
 import { StatusBar } from 'expo-status-bar';
 import { StatusBar as RNStatusBar } from 'react-native';
+import { supabase } from '../../utils/supabase';
 
 export default function LoginScreen() {
-  const [phone, setPhone] = useState('0414-');
-  const [cedula, setCedula] = useState('V-');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const [loading, setLoading] = useState(false);
-  const login = useAppStore((s) => s.login);
 
   const handleLogin = async () => {
+    if (!email.trim() || !password) {
+      Alert.alert('Datos incompletos', 'Ingresa tu correo y contraseña.');
+      return;
+    }
+
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 1200));
-    login(phone, cedula);
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email: email.trim().toLowerCase(),
+      password,
+    });
+
     setLoading(false);
-    router.replace('/(tabs)');
+
+    if (error) {
+      let mensaje = 'No pudimos iniciar sesión. Verifica tus datos.';
+      if (error.message.includes('Invalid login credentials')) {
+        mensaje = 'Correo o contraseña incorrectos.';
+      } else if (error.message.includes('Email not confirmed')) {
+        mensaje = 'Debes confirmar tu correo antes de iniciar sesión. Revisa tu bandeja de entrada.';
+      } else if (error.message.includes('Too many requests')) {
+        mensaje = 'Demasiados intentos. Espera un momento e intenta de nuevo.';
+      }
+      Alert.alert('Error al iniciar sesión', mensaje);
+      return;
+    }
+
+    // El listener en _layout.tsx se encarga de la navegación
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email.trim()) {
+      Alert.alert('Ingresa tu correo', 'Escribe tu correo electrónico para recuperar tu contraseña.');
+      return;
+    }
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase());
+    if (!error) {
+      Alert.alert(
+        'Correo enviado',
+        'Revisa tu correo electrónico para restablecer tu contraseña.',
+      );
+    }
   };
 
   return (
@@ -74,36 +110,50 @@ export default function LoginScreen() {
           <View style={styles.form}>
             <Text style={styles.formTitle}>Inicia sesión</Text>
             <Text style={styles.formSubtitle}>
-              Ingresa tu número de teléfono y cédula
+              Ingresa tu correo electrónico y contraseña
             </Text>
 
             <TextInput
-              label="Teléfono"
-              value={phone}
-              onChangeText={setPhone}
-              keyboardType="phone-pad"
+              label="Correo electrónico"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoComplete="email"
               mode="outlined"
               style={styles.input}
               outlineColor={Colors.border}
               activeOutlineColor={Colors.mint}
               textColor={Colors.textPrimary}
-              left={<TextInput.Icon icon="phone" color={Colors.textSecondary} />}
-              placeholder="0414-000-0000"
+              left={<TextInput.Icon icon="email" color={Colors.textSecondary} />}
+              placeholder="correo@ejemplo.com"
             />
 
             <TextInput
-              label="Cédula de identidad"
-              value={cedula}
-              onChangeText={setCedula}
-              keyboardType="default"
+              label="Contraseña"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!passwordVisible}
+              autoCapitalize="none"
+              autoCorrect={false}
               mode="outlined"
               style={styles.input}
               outlineColor={Colors.border}
               activeOutlineColor={Colors.mint}
               textColor={Colors.textPrimary}
-              left={<TextInput.Icon icon="card-account-details" color={Colors.textSecondary} />}
-              placeholder="V-12.345.678"
+              left={<TextInput.Icon icon="lock" color={Colors.textSecondary} />}
+              right={
+                <TextInput.Icon
+                  icon={passwordVisible ? 'eye-off' : 'eye'}
+                  color={Colors.textSecondary}
+                  onPress={() => setPasswordVisible((v) => !v)}
+                />
+              }
             />
+
+            <Text style={styles.forgotLink} onPress={handleForgotPassword}>
+              ¿Olvidaste tu contraseña?
+            </Text>
 
             <AppButton
               label="Entrar"
@@ -118,29 +168,22 @@ export default function LoginScreen() {
               onPress={() => router.push('/(auth)/register')}
               variant="outline"
             />
-
-            <View style={styles.dividerRow}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>o continúa con</Text>
-              <View style={styles.dividerLine} />
-            </View>
-
-            <View style={styles.socialRow}>
-              <TouchableOpacity style={styles.socialBtn} onPress={handleLogin}>
-                <Text style={styles.socialEmoji}>📱</Text>
-                <Text style={styles.socialLabel}>Pago Móvil</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.socialBtn} onPress={handleLogin}>
-                <Text style={styles.socialEmoji}>🔑</Text>
-                <Text style={styles.socialLabel}>PIN</Text>
-              </TouchableOpacity>
-            </View>
           </View>
 
           <Text style={styles.footer}>
             Al ingresar, aceptas los{' '}
             <Text style={styles.link}>Términos de Servicio</Text> y la{' '}
             <Text style={styles.link}>Política de Privacidad</Text>.
+          </Text>
+
+          <Text style={[styles.footer, { marginTop: 12 }]}>
+            ¿Tienes un estacionamiento?{' '}
+            <Text
+              style={styles.link}
+              onPress={() => router.push('/(auth)/register-operator' as any)}
+            >
+              Regístralo aquí
+            </Text>
           </Text>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -210,43 +253,19 @@ const styles = StyleSheet.create({
   formSubtitle: {
     ...Typography.bodyMedium,
     color: Colors.textSecondary,
-    marginBottom: 8,
+    marginBottom: 4,
   },
   input: {
     backgroundColor: Colors.white,
   },
+  forgotLink: {
+    ...Typography.bodySmall,
+    color: Colors.mint,
+    fontWeight: '600',
+    textAlign: 'right',
+    marginTop: -4,
+  },
   loginBtn: { marginTop: 4 },
-  dividerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginVertical: 4,
-  },
-  dividerLine: { flex: 1, height: 1, backgroundColor: Colors.border },
-  dividerText: { ...Typography.bodySmall, color: Colors.textDisabled },
-  socialRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  socialBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: Colors.white,
-    borderRadius: 14,
-    paddingVertical: 14,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  socialEmoji: { fontSize: 20 },
-  socialLabel: { ...Typography.titleMedium, color: Colors.textPrimary, fontWeight: '600' },
   footer: {
     ...Typography.bodySmall,
     color: Colors.textSecondary,

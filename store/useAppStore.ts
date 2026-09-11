@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { MOCK_TRANSACTIONS, MOCK_VEHICLES, ParkingSpot, Transaction, Vehicle } from '../data/mock';
+import { ParkingSpot, Transaction, Vehicle } from '../data/mock';
 import { REFUND_WINDOW_MS } from '../utils/parking';
 
 export interface ActiveSession {
@@ -22,10 +22,17 @@ export type ParkingActionResult =
 
 interface AppState {
   // User
+  userId: string | null;
   userName: string;
   userPhone: string;
   userCedula: string;
+  userEmail: string;
   isAuthenticated: boolean;
+
+  // Operator (solo cuando el usuario autenticado es admin de un operador)
+  operatorId: string | null;
+  operatorName: string | null;
+  operatorIsActive: boolean;
 
   // Balance
   balanceUsd: number;
@@ -43,8 +50,17 @@ interface AppState {
   activeSessions: ActiveSession[];
 
   // Actions
-  login: (phone: string, cedula: string) => void;
+  setUser: (profile: {
+    userId: string;
+    name: string;
+    phone: string;
+    cedula: string;
+    email: string;
+    balanceUsd?: number;
+  }) => void;
   logout: () => void;
+  setOperator: (id: string, name: string, isActive: boolean) => void;
+  clearOperator: () => void;
   addBalance: (amountUsd: number) => void;
   startParking: (spot: ParkingSpot, intervals?: number, vehicleId?: string) => ParkingActionResult;
   extendParking: (sessionId: string, intervals: number) => ParkingActionResult;
@@ -57,26 +73,63 @@ interface AppState {
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
-  // Initial state
-  userName: 'Carlos Rodríguez',
-  userPhone: '0414-123-4567',
-  userCedula: 'V-12.345.678',
+  // Initial state — vacío; se popula desde Supabase en _layout.tsx
+  userId: null,
+  userName: '',
+  userPhone: '',
+  userCedula: '',
+  userEmail: '',
   isAuthenticated: false,
 
-  balanceUsd: 12.50,
-  balanceBs: 5000,
+  operatorId: null,
+  operatorName: null,
+  operatorIsActive: false,
+
+  balanceUsd: 0,
+  balanceBs: 0,
   exchangeRate: 400,
 
-  vehicles: MOCK_VEHICLES,
-  defaultVehicle: MOCK_VEHICLES[0],
+  vehicles: [],
+  defaultVehicle: null,
 
-  transactions: MOCK_TRANSACTIONS,
+  transactions: [],
 
   activeSessions: [],
 
   // Actions
-  login: (phone, cedula) => set({ isAuthenticated: true, userPhone: phone, userCedula: cedula }),
-  logout: () => set({ isAuthenticated: false }),
+  setUser: ({ userId, name, phone, cedula, email, balanceUsd = 0 }) =>
+    set((state) => ({
+      userId,
+      userName: name,
+      userPhone: phone,
+      userCedula: cedula,
+      userEmail: email,
+      balanceUsd,
+      balanceBs: balanceUsd * state.exchangeRate,
+      isAuthenticated: true,
+    })),
+
+  logout: () =>
+    set({
+      userId: null,
+      userName: '',
+      userPhone: '',
+      userCedula: '',
+      userEmail: '',
+      balanceUsd: 0,
+      balanceBs: 0,
+      isAuthenticated: false,
+      operatorId: null,
+      operatorName: null,
+      operatorIsActive: false,
+      activeSession: null,
+      vehicles: [],
+      defaultVehicle: null,
+      transactions: [],
+    }),
+
+  setOperator: (id, name, isActive) => set({ operatorId: id, operatorName: name, operatorIsActive: isActive }),
+  clearOperator: () => set({ operatorId: null, operatorName: null, operatorIsActive: false }),
 
   addBalance: (amountUsd) => {
     const { exchangeRate } = get();

@@ -19,6 +19,7 @@ import { Colors, Gradients } from '../../constants/colors';
 import { Typography } from '../../constants/typography';
 import { AppButton } from '../../components/ui/AppButton';
 import { useAppStore } from '../../store/useAppStore';
+import { supabase } from '../../utils/supabase';
 import { Vehicle } from '../../data/mock';
 
 const ALL_BRANDS = [
@@ -242,9 +243,9 @@ export default function ProfileScreen() {
       {
         text: 'Salir',
         style: 'destructive',
-        onPress: () => {
-          logout();
-          router.replace('/(auth)/login');
+        onPress: async () => {
+          await supabase.auth.signOut();
+          // El listener en _layout.tsx limpia el store y redirige automáticamente
         },
       },
     ]);
